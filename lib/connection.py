@@ -83,7 +83,15 @@ class Connection:
         except OSError:
             pass
 
+        dirname = os.path.join(exercise.course.name,
+            exercise.name_week,
+            exercise.name_name)
+
         filename = os.path.join("tmp", "%i.zip" % exercise.id)
+
+        if os.path.isdir(dirname) and not self.force:
+            v.log(0, "Skipping \"%s\" since already extracted." % dirname)
+            return
 
         with open(filename, "wb") as fp:
             r = requests.get("%sexercises/%d.zip" % (self.server, exercise.id),
@@ -100,12 +108,9 @@ class Connection:
             exercise.name_week,
             exercise.name_name)
 
-        if os.path.isdir(dirname) and not self.force:
-            v.log(0, "Skipping \"%s\" since already extracted." % dirname)
-        else:
-            v.log(0, "Extracting \"%s\"" % dirname)
-            zipfp = zipfile.ZipFile(filename)
-            zipfp.extractall(exercise.course.name)
+        v.log(0, "Extracting \"%s\"" % dirname)
+        zipfp = zipfile.ZipFile(filename)
+        zipfp.extractall(exercise.course.name)
 
         os.remove(filename)
 
