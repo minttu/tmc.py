@@ -1,6 +1,8 @@
 *
 !requirements.txt
-!tmc.py
+!tmc
 !.gitignore
 !README.md
 !LICENSE
+!*.py
+*.pyc
