@@ -1,6 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+# tmc.py
+# ======
+# Copyright 2014 Juhani Imberg
+
 import requests
 import json
 import sys
@@ -12,6 +16,7 @@ import dateutil.parser
 import datetime
 import pytz
 import shutil
+import zipfile
 
 def vprint(level, message):
 	if args is None:
@@ -37,6 +42,13 @@ def handle_deadline(proper, message):
 	if now < then:
 		return "\033[32m"+message+"\033[0m"
 	return "\033[31m"+message+"\033[0m"
+
+def handle_status(status):
+	if status == "ok":
+		return "\033[32mOK!\033[0m"
+	elif status == "error":
+		return "\033[31mERROR\033[0m"
+	return status
 
 class Config:
 	def __init__(self):
@@ -94,7 +106,7 @@ class Config:
 			vprint(-1, "Authentication failed!")
 			exit()
 		else:
-			vprint(-1, "Authentication was successfull!")
+			vprint(1, "Authentication was successfull!")
 			self.can_authenticate = True
 			self.save()
 
@@ -114,7 +126,7 @@ class Config:
 		for i in self.data["courses"]:
 			if i["id"] is id:
 				return i
-		return None
+		return
 
 	def list_courses(self):
 		self.load()
@@ -127,7 +139,7 @@ class Config:
 	def init_course(self, course):
 		self.load()
 		if course is None:
-			vprint(-1, "Couldn\'t find that course by id ("+id+")")
+			vprint(-1, "Couldn\'t find that course")
 			return
 		try:
 			os.mkdir(course["name"])
@@ -141,7 +153,7 @@ class Config:
 		except OSError:
 			pass
 		try:
-			with open(data["course"]["name"]+"/data.json", "w") as fp:
+			with open(os.path.join(data["course"]["name"], "data.json"), "w") as fp:
 				json.dump(data, fp)
 				fp.close()
 		except IOError:
@@ -149,7 +161,7 @@ class Config:
 
 	def load_course(self, course):
 		try:
-			with open(course["name"]+"/data.json", "r") as fp:
+			with open(os.path.join(course["name"], "data.json"), "r") as fp:
 				vprint(1, "Loading course.")
 				data = json.load(fp)
 				fp.close()
@@ -161,7 +173,7 @@ class Config:
 	def download_course(self, course):
 		self.load()
 		if course is None:
-			vprint(-1, "Couldn\'t find that course by id ("+str(course['id'])+")")
+			vprint(-1, "Couldn\'t find that course")
 			return
 
 		vprint(0, "Downloading course metadata.")
@@ -169,41 +181,113 @@ class Config:
 		self.save_course(r.json())
 		return r.json()
 
-	def list_excercises(self, course):
+	def list_exercises(self, course):
 		self.load()
 		if course is None:
-			vprint(-1, "Couldn\'t find that course by id ("+str(course['id'])+")")
+			vprint(-1, "Couldn\'t find that course")
 			return
 		data = self.load_course(course)
 
 		# ugh
-		tmparr = [	["r", "", ""],
-					["e", "a", "c"],
-					["t", "t", "o"],
-					["u", "t", "m"],
-					["r", "e", "p"],
-					["n", "m", "l"],
+		tmparr = [	["d", "", ""],
+					["o", "a", "c"],
+					["w", "t", "o"],
+					["n", "t", "m"],
+					["l", "e", "p"],
+					["o", "m", "l"],
 					["a", "p", "e"],
-					["b", "t", "t"],
-					["l", "e", "e"]]
+					["d", "t", "t"],
+					["e", "e", "e"]]
 		for i in tmparr:
 			print u"      │ %1s │ %1s │ %1s │" % (i[0], i[1], i[2])
 
-		print u"%5s │ %1s │ %1s │ %1s │ %25s │ %s" % ("id", "e", "d", "d", "deadline", "name")
+		print u"%5s │ %1s │ %1s │ %1s │ %25s │ %s" % ("id", "d", "d", "d", "deadline", "name")
 		print u"──────┼───┼───┼───┼───────────────────────────┼───────────────────"
 		for i in data["course"]["exercises"]:
 			print u"%5d │ %1s │ %1s │ %1s │ %25s │ %s" % (i["id"],
-											beautify(i["returnable"]),
+											beautify(self.is_downloaded(course, i)),
 											beautify(i["attempted"]),
 											beautify(i["completed"]),
 											handle_deadline(i["deadline"], i["deadline_description"]),
 											i["name"])
 
+	def is_downloaded(self, course, exercise):
+		if exercise is None:
+			return False
+		spl = exercise['name'].split("-")
+		return os.path.isdir(os.path.join(course["name"], spl[0], spl[1]))
+
+	def download_exercises(self, course):
+		self.load()
+		if course is None:
+			vprint(-1, "Couldn\'t find that course")
+			return
+		self.download_course(course)
+		data = self.load_course(course)
+
+		vprint(0, "Downloading all exercises from "+course["name"])
+		for i in data["course"]["exercises"]:
+			filename = os.path.join(course["name"], str(i["id"])+".zip")
+			dirname = course["name"]
+			with open(filename, "wb") as fp:
+				vprint(1, "Downloading "+filename)
+				r = requests.get(i["zip_url"], auth=self.get_auth(), stream=True)
+				for block in r.iter_content(1024):
+					if not block:
+						break
+					fp.write(block)
+			vprint(1, "Unzipping "+filename+" to "+dirname)
+			zipfp = zipfile.ZipFile(filename)
+			zipfp.extractall(dirname)
+			os.remove(filename)
+		vprint(0, "Done!")
+
+	def get_exercise(self, course, exercise_id):
+		self.load()
+		if course is None:
+			vprint(-1, "Couldn\'t find that course")
+			return
+		data = self.load_course(course)
+		for i in data["course"]["exercises"]:
+			if i["id"] == exercise_id:
+				return i
+
+	def submit_exercise(self, course, exercise_id):
+		exercise = self.get_exercise(course, exercise_id)
+		if not self.is_downloaded(course, exercise):
+			vprint(-1, "Can't submit something you have not even downloaded. You might be in a wrong directory.")
+			exit(-1)
+		vprint(0, "Submitting "+exercise["name"])
+		vprint(1, "Zipping up")
+		filename = os.path.join(course["name"], "submit_"+str(exercise["id"])+".zip")
+		dirname = os.path.join(course["name"], exercise["name"].split("-")[0], exercise["name"].split("-")[1])
+		zipfp = zipfile.ZipFile(filename, "w")
+		for root, dirs, files in os.walk(dirname):
+			for file in files:
+				zipfp.write(os.path.join(root, file), os.path.join(exercise["name"].split("-")[0], os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..'))), zipfile.ZIP_DEFLATED)
+		zipfp.close()
+		files = {"submission[file]": open(filename, "rb")}
+		payload = {"api_version": 7, "commit": "Submit"}
+		r = requests.post(exercise["return_url"], auth=self.get_auth(), data=payload, files=files)
+		os.remove(filename)
+		if 'submission_url' in r.json():
+			vprint(0, "Successfully submitted %s. Submission URL: %s\nProcessing..." % (exercise["name"], r.json()["submission_url"]))
+		while self.check_submission_url(r.json()["submission_url"]) == "processing":
+			time.sleep(1)
+
+	def check_submission_url(self, submission_url):
+		r = requests.get(submission_url, auth=self.get_auth())
+		data = r.json()
+		if data["status"] != "processing":
+			print u"Status: %s" % handle_status(data["status"])
+			print u"Points: (%d/%d)" % (len(data["points"]), len(data["points"])+len(data["missing_review_points"]))
+		return data["status"]
+
 	def remove_everything(self):
 		self.load()
-		for i in self.data['courses']:
+		for i in self.data["courses"]:
 			try:
-				shutil.rmtree(i['name'])
+				shutil.rmtree(i["name"])
 			except OSError:
 				pass
 
@@ -217,6 +301,7 @@ def main():
 	parser.add_argument("--list", "-l", dest="command", action="store_const", const="list", help="list all courses or exercises if --course is provided")
 	parser.add_argument("--init", "-i", dest="command", action="store_const", const="init", help="initialize a folder for course id")
 	parser.add_argument("--download", "-d", dest="command", action="store_const", const="download", help="downloads all exercises for course id")
+	parser.add_argument("--submit", "-s", dest="command", action="store_const", const="submit", help="submit an exercise")
 	parser.add_argument("--remove", dest="command", action="store_const", const="remove", help="removes everything")
 	parser.add_argument("--course", "-c", dest="course_id", action="store", type=int, help="course id")
 	parser.add_argument("--exercise", "-e", dest="exercise_id", action="store", type=int, help="exercise id")
@@ -236,7 +321,7 @@ def main():
 		if args.course_id is None:
 			conf.list_courses()
 		else:
-			conf.list_excercises(conf.get_course(args.course_id))
+			conf.list_exercises(conf.get_course(args.course_id))
 	elif args.command is "init":
 		if args.course_id is None:
 			vprint(-1, "You need to provide a course id (--course) for this command!")
@@ -246,7 +331,7 @@ def main():
 		if args.course_id is None:
 			vprint(-1, "You need to provide a course id (--course) for this command!")
 			return
-		conf.download_course(conf.get_course(args.course_id))
+		conf.download_exercises(conf.get_course(args.course_id))
 	elif args.command is "remove":
 		if args.course_id is not None:
 			pass
@@ -256,6 +341,14 @@ def main():
 			sure = raw_input("This will remove everything this script created. ARE YOU SURE?! [N/y] ")
 			if sure.upper() == "Y":
 				conf.remove_everything()
+	elif args.command is "submit":
+		if args.course_id is None:
+			vprint(-1, "You need to provide a course id (--course) for this command!")
+			return
+		if args.exercise_id is None:
+			vprint(-1, "You need to provide a exercise id (--exercise) for this command!")
+			return
+		conf.submit_exercise(conf.get_course(args.course_id), args.exercise_id)
 	elif args.command is "help":
 		parser.print_help()
 
