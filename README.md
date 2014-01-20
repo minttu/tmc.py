@@ -6,29 +6,29 @@ A python CLI for TestMyCode.
 todo
 ====
 
-	make it more user friendly
-	handle changing directories better (currently you need to do everything in the same dir as tmc.py is)
-	comment code
-	--quiet
-	--paste
-	--request-review
+    handle changing directories better (currently you need to do everything in the same dir as tmc.py is)
+    comment code
+    --verbose
+    --quiet
+    --paste
+    --request-review
+    remove
 
 usage
 =====
 
-	./tmc.py --auth                				# creates file with userdata for future connections
-	./tmc.py --list                				# lists all courses
-	./tmc.py --list --course n     				# lists all exercises from course that has the id of n
-	./tmc.py --download --course n 				# downloads all exercises from course that has the id of n
-	./tmc.py --submit --course n --exercise m 	# submits a exercise for testing
-	./tmc.py --remove              				# removes all downloaded courses
+    ./tmc.py init                                   # asks for server, username and password and saves them for future usage
+    ./tmc.py list-courses                           # lists all courses
+    ./tmc.py list-exercises ID                      # lists all exercises from course ID
+    ./tmc.py download-exercises ID                  # downloads all exercises from course ID
+    ./tmc.py submit-exercise CourseID ExerciseID    # submits a exercise for testing
 
 installation
 ============
 
-	get python2.7
-	get pip
-	pip install -r requirements.txt
+    get python2.7
+    get pip
+    pip install -r requirements.txt
 
 license
 =======
