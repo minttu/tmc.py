@@ -15,12 +15,15 @@ import zipfile
 from course import Course
 from exercise import Exercise
 import shutil
+import time
 
 class Connection:
+    spinner = ['\\', '|', '/', '-']
     def __init__(self, server, auth):
         self.server = server
         self.auth = auth
         self.force = False
+        self.spinindex = 0
 
     def get_courses(self):
         r = requests.get("%scourses.json" % self.server,
@@ -57,6 +60,14 @@ class Connection:
             newcourse.exercises.append(tmp)
 
         return newcourse
+
+    def get_exercise(self, course_id, exercise_id):
+        course = self.get_course(course_id)
+        for i in course.exercises:
+            if i.id == exercise_id:
+                return i
+        v.log(-1, "Could not find exercise %d in course %d" % (exercise_id, course_id))
+        return None
 
     def download_exercises(self, exercises):
         for i in exercises:
@@ -97,6 +108,65 @@ class Connection:
             zipfp.extractall(exercise.course.name)
 
         os.remove(filename)
+
+    def submit_exercise(self, exercise, callback):
+        if exercise.downloaded == False:
+            v.log(-1, """Can't submit something you have not even downloaded. 
+                You might be in a wrong directory.""")
+            exit(-1)
+        v.log(0, "Submitting %s. This will take a while." % exercise.name)
+
+        try:
+            os.mkdir("tmp")
+        except OSError:
+            pass
+
+        v.log(1, "Zipping up")
+        filename = os.path.join("tmp", "submit_"+str(exercise.id)+".zip")
+        dirname = os.path.join(exercise.course.name, exercise.name_week, exercise.name_name)
+        zipfp = zipfile.ZipFile(filename, "w")
+        for root, dirs, files in os.walk(dirname):
+            for file in files:
+                zipfp.write(os.path.join(root, file), os.path.join(exercise.name_week, os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..'))), zipfile.ZIP_DEFLATED)
+        zipfp.close()
+
+        r = requests.post("%s/exercises/%d/submissions.json" % (
+            self.server, exercise.id),
+            auth = self.auth,
+            data = {"api_version": 7, "commit": "Submit"},
+            files = {"submission[file]": open(filename, "rb")})
+
+        os.remove(filename)
+
+        if 'submission_url' in r.json():
+            v.log(1, "Successfully submitted %s.\nPlease wait." % exercise.name)
+            v.log(1, "URL: %s" % r.json()["submission_url"])
+        
+        while self.check_submission_url(r.json()["submission_url"], callback) == "processing":
+            time.sleep(1)
+
+    def check_submission_url(self, submission_url, callback):
+        r = requests.get(submission_url, auth=self.auth)
+        data = r.json()
+        self.spin()
+        if data["status"] != "processing":
+            data["id"] = submission_url.split("submissions/")[1].split(".json")[0]
+            self.stopspin()
+            callback(data)
+        return data["status"]
+
+    def spin(self):
+        if self.spinindex != 0:
+            sys.stdout.write("\b")
+        sys.stdout.write(Connection.spinner[self.spinindex%4])
+        sys.stdout.flush()
+        self.spinindex += 1
+
+    def stopspin(self):
+        if self.spinindex != 0:
+            sys.stdout.write("\b")
+            sys.stdout.flush()
+        self.spinindex = 0
 
     def check_error(self, data):
         if "error" in data:

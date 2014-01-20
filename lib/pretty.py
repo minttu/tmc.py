@@ -44,6 +44,26 @@ class Pretty:
                 exercise.name)
 
     @staticmethod
+    def print_submission(data):
+        status = data["status"]
+        if status == "ok":
+            status = "\033[32mOK!\033[0m"
+        elif status == "processing":
+            status = "\033[33mprocessing\033[0m"
+        elif status == "error":
+            status = "\033[31mERROR!\033[0m"
+        elif status == "fail":
+            status = "\033[31mFAIL!\033[0m"
+        id = int(data["id"])
+        points = len(data["points"])
+        maxpoints = points + len(data["missing_review_points"])
+        print u"ID: %d | Status: %s │ Points: %d" % (id, status, points)
+        for i in data["test_cases"]:
+            if not i["successful"]:
+                print "\033[31m%s\033[0m" % i["message"]
+        
+
+    @staticmethod
     def boolean_to_pretty(boolean):
         if boolean is True:
             return u"\033[32m✔\033[0m"

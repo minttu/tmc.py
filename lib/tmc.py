@@ -49,16 +49,16 @@ def download_exercises(course_id):
     conn = connection.Connection(conf.server, conf.auth)
     conn.download_exercises(conn.get_course(int(course_id)).exercises)
 
-def submit_exercise(exercise_id):
+def submit_exercise(course_id, exercise_id):
     conf = config.Config()
     conf.load()
 
     conn = connection.Connection(conf.server, conf.auth)
-    conn.submit_exercise(conn.get_exercise(int(exercise_id)))
+    conn.submit_exercise(conn.get_exercise(int(course_id), int(exercise_id)), Pretty.print_submission)
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([init, list_courses, list_exercises, download_exercises])
+    parser.add_commands([init, list_courses, list_exercises, download_exercises, submit_exercise])
     parser.dispatch()
 
 '''
