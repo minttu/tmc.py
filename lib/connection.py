@@ -98,6 +98,12 @@ class Connection:
 
         if os.path.isdir(dirname) and self.force == False:
             v.log(0, "Skipping \"%s\" since already extracted." % dirname)
+            with open(os.path.join(dirname, ".tmc_exercise_id"), "w") as fp:
+                fp.write(str(exercise.id))
+                fp.close()
+            with open(os.path.join(dirname, ".tmc_course_id"), "w") as fp:
+                fp.write(str(exercise.course.id))
+                fp.close()
             return
 
         with open(filename, "wb") as fp:
