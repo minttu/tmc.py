@@ -35,6 +35,7 @@ You don't need to provide IDs again if you use `set-exercise` and `set-course`.
     ./tmc.py list-courses                           # lists all courses
     ./tmc.py list-exercises [ID]                    # lists all exercises from course ID
     ./tmc.py download-exercises [ID]                # downloads all exercises from course ID
+    ./tmc.py update-exercises [ID]                  # updates all exercises without overriding user code
     ./tmc.py submit-exercise [ExerciseID][CourseID] # submits a exercise for testing
 
     ./tmc.py set-course [ID]                        # sets the default CourseID, so that you don't need to write it again

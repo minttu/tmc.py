@@ -27,6 +27,7 @@ class Connection:
         self.force = False
         self.paste = False
         self.review = False
+        self.update = False
         self.spinindex = 0
 
     def get_courses(self):
@@ -97,7 +98,7 @@ class Connection:
 
         filename = os.path.join("tmp", "%i.zip" % exercise.id)
 
-        if os.path.isdir(dirname) and self.force == False:
+        if os.path.isdir(dirname) and self.force == False and self.update == False:
             v.log(0, "Skipping \"%s\" since already extracted." % dirname)
             with open(os.path.join(dirname, ".tmc_exercise_id"), "w") as fp:
                 fp.write(str(exercise.id))
@@ -122,9 +123,16 @@ class Connection:
             exercise.name_week,
             exercise.name_name)
 
-        v.log(0, "Extracting \"%s\"" % dirname)
-        zipfp = zipfile.ZipFile(filename)
-        zipfp.extractall(exercise.course.name)
+        if self.update == True:
+            v.log(0, "Extracting/Updating \"%s\"" % dirname)
+            zipfp = zipfile.ZipFile(filename)
+            for i in zipfp.infolist():
+                if "/src/" not in i.filename:
+                    zipfp.extract(i, exercise.course.name)
+        else:
+            v.log(0, "Extracting \"%s\"" % dirname)
+            zipfp = zipfile.ZipFile(filename)
+            zipfp.extractall(exercise.course.name)
 
         with open(os.path.join(dirname, ".tmc_exercise_id"), "w") as fp:
             fp.write(str(exercise.id))

@@ -57,6 +57,7 @@ def list_exercises(course):
 
 @argh.decorators.arg("course", nargs="*", default="-1")
 @argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
+@argh.decorators.arg("-u", "--update", help="try to update all exercises", default=False)
 def download_exercises(course, *args, **kwargs):
     conf = Config()
     conf.load()
@@ -83,6 +84,38 @@ def download_exercises(course, *args, **kwargs):
 
     conn = connection.Connection(conf.server, conf.auth)
     conn.force = kwargs["force"]
+    conn.update = kwargs["update"]
+    conn.download_exercises(conn.get_course(int(course)).exercises)
+
+@argh.decorators.arg("course", nargs="*", default="-1")
+@argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
+def update_exercises(course, *args, **kwargs):
+    conf = Config()
+    conf.load()
+
+    if type(course) is list:
+        course = course[0]
+
+    try:
+        value = int(course)
+        course = value
+    except ValueError:
+        course = Config.get_course_id(course)
+        if course is None:
+            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
+            exit(-1)
+
+    if course == -1:
+        if conf.default_course != -1:
+            course = int(conf.default_course)
+            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
+        else:
+            v.log(-1, "You need to supply a course ID or save one with set-course!")
+            return
+
+    conn = connection.Connection(conf.server, conf.auth)
+    conn.force = kwargs["force"]
+    conn.update = True
     conn.download_exercises(conn.get_course(int(course)).exercises)
 
 @argh.decorators.arg("exercise", nargs="*", default="-1")
@@ -226,5 +259,5 @@ def submission(submissionid, *args, **kwargs):
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([init, list_courses, list_exercises, download_exercises, submit_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
+    parser.add_commands([init, list_courses, list_exercises, download_exercises, update_exercises, submit_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
     parser.dispatch()
