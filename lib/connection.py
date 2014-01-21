@@ -156,6 +156,10 @@ class Connection:
         r = requests.get(submission_url, auth=self.auth)
         data = r.json()
         self.spin()
+        if "error" in data:
+            self.stopspin()
+            v.log(-1, "Not authorized to view that submission or that submission doe\'s not exist!")
+            exit(-1)
         if data["status"] != "processing":
             data["id"] = submission_url.split("submissions/")[1].split(".json")[0]
             self.stopspin()

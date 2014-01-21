@@ -139,7 +139,17 @@ def previous_exercise():
     conf.load()
     conf.previous_exercise()
 
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def submission(submissionid, *args, **kwargs):
+    conf = config.Config()
+    conf.load()
+
+    Pretty.trace = kwargs["trace"]
+    conn = connection.Connection(conf.server, conf.auth)
+    while conn.check_submission_url("%ssubmissions/%d.json?api_version=7" % (conn.server, int(submissionid)), Pretty.print_submission) == "processing":
+        time.sleep(1)
+
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([init, list_courses, list_exercises, download_exercises, submit_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise])
+    parser.add_commands([init, list_courses, list_exercises, download_exercises, submit_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
     parser.dispatch()
