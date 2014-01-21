@@ -5,7 +5,8 @@
 # 
 # Provides the CLI trough argh.
 # 
-# Copyright 2014 Juhani Imberg
+# Copyright © 2014 Juhani Imberg
+# Released under the MIT License, see LICENSE for details
 
 import argh
 from vlog import VLog as v

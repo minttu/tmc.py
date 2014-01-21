@@ -5,7 +5,8 @@
 # 
 # Pretty printing!
 # 
-# Copyright 2014 Juhani Imberg
+# Copyright © 2014 Juhani Imberg
+# Released under the MIT License, see LICENSE for details
 
 import string
 

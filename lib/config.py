@@ -5,7 +5,8 @@
 # 
 # Manages tmc_config.json for the required auth credentials.
 # 
-# Copyright 2014 Juhani Imberg
+# Copyright © 2014 Juhani Imberg
+# Released under the MIT License, see LICENSE for details
 
 import json
 import sys

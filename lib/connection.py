@@ -5,7 +5,8 @@
 # 
 # Handles connections to the TMC server and checking for errors.
 # 
-# Copyright 2014 Juhani Imberg
+# Copyright © 2014 Juhani Imberg
+# Released under the MIT License, see LICENSE for details
 
 import requests
 import os
