@@ -41,6 +41,8 @@ commands
     ./tmc.py next-exercise                          # goes to the next exercise
     ./tmc.py previous-exercise                      # goes to the previous exercise
 
+    ./tmc.py submission ID                          # get info from submission
+
     ./tmc.py help [command]
 
 
