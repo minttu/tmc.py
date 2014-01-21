@@ -10,6 +10,7 @@
 import string
 
 class Pretty:
+    trace = False
     @staticmethod
     def list_courses(selected, courses):
         print u"%9s │ %2s │ %s" % ("selected", "ID", "Name")
@@ -67,7 +68,11 @@ class Pretty:
         if data["status"] == "fail":
             for i in data["test_cases"]:
                 if not i["successful"]:
-                    print "\033[31m%s\033[0m" % i["message"]
+                    print " * \033[31m%s\033[0m" % i["message"]
+                    if Pretty.trace:
+                        for trace in i["exception"]["stackTrace"]:
+                            print "%s:%d %s.%s" % (trace["fileName"], trace["lineNumber"], trace["declaringClass"], trace["methodName"])
+
             exit(-1)
         elif data["status"] == "error":
             print "\033[31m%s\033[0m" % data["error"]

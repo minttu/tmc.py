@@ -73,6 +73,7 @@ def download_exercises(courseid, *args, **kwargs):
 @argh.decorators.arg("courseid", nargs="*", default=-1)
 @argh.decorators.arg("-p", "--paste", help="make submission a paste", default=False)
 @argh.decorators.arg("-r", "--review", help="request review", default=False)
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
 def submit_exercise(exerciseid, courseid, *args, **kwargs):
     conf = config.Config()
     conf.load()
@@ -102,6 +103,7 @@ def submit_exercise(exerciseid, courseid, *args, **kwargs):
             v.log(-1, "You need to supply a exercise ID or save one with set-exercise!")
             return
 
+    Pretty.trace = kwargs["trace"]
     conn = connection.Connection(conf.server, conf.auth)
     conn.paste = kwargs["paste"]
     conn.review = kwargs["review"]
