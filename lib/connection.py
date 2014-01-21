@@ -32,7 +32,6 @@ class Connection:
 
         if self.check_error(r.json()):
             return None
-        #return r.json()["courses"]
         courses = []
         for course in r.json()["courses"]:
             courses.append(Course(int(course["id"]), course["name"]))
@@ -89,7 +88,7 @@ class Connection:
 
         filename = os.path.join("tmp", "%i.zip" % exercise.id)
 
-        if os.path.isdir(dirname) and not self.force:
+        if os.path.isdir(dirname) and self.force == False:
             v.log(0, "Skipping \"%s\" since already extracted." % dirname)
             return
 

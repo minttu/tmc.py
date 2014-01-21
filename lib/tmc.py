@@ -46,8 +46,9 @@ def list_exercises(courseid):
     conn = connection.Connection(conf.server, conf.auth)
     Pretty.list_exercises(conf.default_exercise, conn.get_course(int(courseid)).exercises)
 
-@argh.decorators.arg('courseid', nargs="*", default=-1)
-def download_exercises(courseid):
+@argh.decorators.arg("courseid", nargs="*", default=-1)
+@argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
+def download_exercises(courseid, *args, **kwargs):
     conf = config.Config()
     conf.load()
 
@@ -65,10 +66,11 @@ def download_exercises(courseid):
             return
 
     conn = connection.Connection(conf.server, conf.auth)
+    conn.force = kwargs["force"]
     conn.download_exercises(conn.get_course(int(courseid)).exercises)
 
-@argh.decorators.arg('exerciseid', nargs="*", default=-1)
-@argh.decorators.arg('courseid', nargs="*", default=-1)
+@argh.decorators.arg("exerciseid", nargs="*", default=-1)
+@argh.decorators.arg("courseid", nargs="*", default=-1)
 def submit_exercise(exerciseid, courseid):
     conf = config.Config()
     conf.load()
