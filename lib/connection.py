@@ -23,6 +23,8 @@ class Connection:
         self.server = server
         self.auth = auth
         self.force = False
+        self.paste = False
+        self.review = False
         self.spinindex = 0
 
     def get_courses(self):
@@ -138,6 +140,7 @@ class Connection:
             self.server, exercise.id),
             auth = self.auth,
             data = {"api_version": 7, "commit": "Submit"},
+            params = {"request_review": (1 if self.review else 0), "paste": (1 if self.review else 0)},
             files = {"submission[file]": open(filename, "rb")})
 
         os.remove(filename)

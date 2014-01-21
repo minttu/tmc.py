@@ -64,9 +64,12 @@ class Pretty:
         points = len(data["points"])
         maxpoints = points + len(data["missing_review_points"])
         print u"ID: %d | Status: %s │ Points: %d" % (id, status, points)
-        for i in data["test_cases"]:
-            if not i["successful"]:
-                print "\033[31m%s\033[0m" % i["message"]
+        if data["status"] == "fail":
+            for i in data["test_cases"]:
+                if not i["successful"]:
+                    print "\033[31m%s\033[0m" % i["message"]
+        elif data["status"] == "error":
+            print "\033[31m%s\033[0m" % data["error"]
         
 
     @staticmethod

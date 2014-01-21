@@ -71,7 +71,9 @@ def download_exercises(courseid, *args, **kwargs):
 
 @argh.decorators.arg("exerciseid", nargs="*", default=-1)
 @argh.decorators.arg("courseid", nargs="*", default=-1)
-def submit_exercise(exerciseid, courseid):
+@argh.decorators.arg("-p", "--paste", help="make submission a paste", default=False)
+@argh.decorators.arg("-r", "--review", help="request review", default=False)
+def submit_exercise(exerciseid, courseid, *args, **kwargs):
     conf = config.Config()
     conf.load()
 
@@ -98,9 +100,11 @@ def submit_exercise(exerciseid, courseid):
             v.log(0, "Using exercise ID %d. (You can reset this with unset-exercise)" % exerciseid)
         else:
             v.log(-1, "You need to supply a exercise ID or save one with set-exercise!")
-
+            return
 
     conn = connection.Connection(conf.server, conf.auth)
+    conn.paste = kwargs["paste"]
+    conn.review = kwargs["review"]
     conn.submit_exercise(conn.get_exercise(int(courseid), int(exerciseid)), Pretty.print_submission)
 
 def set_course(courseid):
