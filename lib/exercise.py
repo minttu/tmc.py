@@ -19,8 +19,13 @@ class Exercise:
         self.id = id
         self.course = course
         self.name = name
-        self.name_week = name.split("-")[0]
-        self.name_name = name.split("-")[1]
+        tmpname = name.split("-")
+        if len(tmpname) > 1:
+            self.name_week = name.split("-")[0]
+            self.name_name = name.split("-")[1]
+        else:
+            self.name_week = ""
+            self.name_name = name
         self.raw = None
         self.downloaded = False
         self.attempted = False

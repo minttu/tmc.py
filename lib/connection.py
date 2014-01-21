@@ -188,7 +188,12 @@ class Connection:
 
     def check_submission_url(self, submission_url, callback):
         r = requests.get(submission_url, auth=self.auth)
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError:
+            self.stopspin()
+            v.log(-1, "Didn't get valid JSON. Probably a server problem.")
+            exit(-1)
         self.spin()
         if "error" in data:
             self.stopspin()
