@@ -7,35 +7,41 @@
 # 
 # Copyright 2014 Juhani Imberg
 
+import string
+
 class Pretty:
     @staticmethod
-    def list_courses(courses):
-        print u"%3s │ %s" % ("ID", "Name")
-        print u"%s┼%s" % (u"─"*4, u"─"*26)
+    def list_courses(selected, courses):
+        print u"%9s │ %2s │ %s" % ("selected", "ID", "Name")
+        print u"%s┼%s┼%s" % (u"─"*10,u"─"*4, u"─"*26)
         for course in courses:
-            print u"%3d │ %s" % (course.id, course.name)
+            print u"%s │ %2d │ %s" % (
+                " "+string.center(Pretty.boolean_to_pretty(course.id == selected), 17),
+                course.id,
+                course.name)
 
     @staticmethod
-    def list_exercises(exercises):
+    def list_exercises(selected, exercises):
 
         # ugh
-        tmparr = [  ["d", "", ""],
-                    ["o", "a", "c"],
-                    ["w", "t", "o"],
-                    ["n", "t", "m"],
-                    ["l", "e", "p"],
-                    ["o", "m", "l"],
-                    ["a", "p", "e"],
-                    ["d", "t", "t"],
-                    ["e", "e", "e"]]
+        tmparr = [  ["", "d", "", ""],
+                    ["", "o", "a", "c"],
+                    ["s", "w", "t", "o"],
+                    ["e", "n", "t", "m"],
+                    ["l", "l", "e", "p"],
+                    ["e", "o", "m", "l"],
+                    ["c", "a", "p", "e"],
+                    ["t", "d", "t", "t"],
+                    ["e", "e", "e", "e"]]
         for i in tmparr:
-            print u"      │ %1s │ %1s │ %1s │" % (i[0], i[1], i[2])
+            print u" %1s │      │ %1s │ %1s │ %1s │" % (i[0], i[1], i[2], i[3])
 
-        print u"%5s │ %1s │ %1s │ %1s │ %25s │ %s" % (
-            "id", "d", "d", "d", "deadline", "name")
-        print u"%s┼───┼───┼───┼%s┼%s" % (u"─"*6, u"─"*27, u"─"*17)
+        print u" %1s │ %4s │ %1s │ %1s │ %1s │ %25s │ %s" % (
+            "d", "id", "d", "d", "d", "deadline", "name")
+        print u"───┼%s┼───┼───┼───┼%s┼%s" % (u"─"*6, u"─"*27, u"─"*17)
         for exercise in exercises:
-            print u"%5d │ %1s │ %1s │ %1s │ %25s │ %s" % (
+            print u" %1s │ %4d │ %1s │ %1s │ %1s │ %25s │ %s" % (
+                Pretty.boolean_to_pretty(exercise.id == selected),
                 exercise.id,
                 Pretty.boolean_to_pretty(exercise.downloaded),
                 Pretty.boolean_to_pretty(exercise.attempted),

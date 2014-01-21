@@ -1,3 +1,4 @@
 *mooc*
 *.pyc
 *.json
+tmp/*

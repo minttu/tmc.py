@@ -20,13 +20,15 @@ class Config:
         self.auth = ()
         self.filename = "tmc_config.json"
         self.default_course = -1
+        self.default_exercise = -1
 
     def save(self):
         v.log(0, "Saving configuration file \"%s\"" % self.filename)
         data = {"username": self.username,
                 "password": self.password,
                 "server": self.server,
-                "default_course": self.default_course}
+                "default_course": self.default_course,
+                "default_exercise": self.default_exercise}
         try:
             with open(self.filename, "w") as fp:
                 json.dump(data, fp)
@@ -49,7 +51,9 @@ class Config:
         self.password = data["password"]
         self.server = data["server"]
         if "default_course" in data:
-            self.default_course = data["default_course"]
+            self.default_course = int(data["default_course"])
+        if "default_exercise" in data:
+            self.default_exercise = int(data["default_exercise"])
         self.auth = (self.username, self.password)
 
     def create_new(self):
@@ -63,10 +67,36 @@ class Config:
 
     def set_course(self, id):
         self.default_course = id
-        v.log(0, "Setting default course ID to %i" % int(id))
+        v.log(0, "Setting default course ID to %d" % int(id))
         self.save()
 
     def unset_course(self):
         self.default_course = -1
         v.log(0, "Resetted default course ID")
         self.save()
+
+    def set_exercise(self, id):
+        self.default_exercise = id
+        v.log(0, "Setting default exercise ID to %d" % int(id))
+        self.save()
+
+    def unset_exercise(self):
+        self.default_exercise = -1
+        v.log(0, "Resetted default exercise ID")
+        self.save()
+
+    def next_exercise(self):
+        if self.default_exercise != -1:
+            self.default_exercise += 1
+            v.log(0, "Setting default exercise ID to %d" % self.default_exercise)
+            self.save()
+        else:
+            v.log(-1, "You need to set-exercise before trying to go to the next one!")
+
+    def previous_exercise(self):
+        if self.default_exercise != -1:
+            self.default_exercise -= 1
+            v.log(0, "Setting default exercise ID to %d" % self.default_exercise)
+            self.save()
+        else:
+            v.log(-1, "You need to set-exercise before trying to go to the previous one!")
