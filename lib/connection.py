@@ -156,11 +156,17 @@ class Connection:
                 zipfp.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..')), zipfile.ZIP_DEFLATED)
         zipfp.close()
 
+        params = {}
+        if self.review == True:
+            params["request_review"] = 1
+        if self.paste == True:
+            params["paste"] = 0
+
         r = requests.post("%s/exercises/%d/submissions.json" % (
             self.server, exercise.id),
             auth = self.auth,
             data = {"api_version": 7, "commit": "Submit"},
-            params = {"request_review": (1 if self.review else 0), "paste": (1 if self.review else 0)},
+            params = params,
             files = {"submission[file]": open(filename, "rb")})
 
         os.remove(filename)
