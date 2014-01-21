@@ -10,9 +10,8 @@ todo
     comment code
     --verbose
     --quiet
-    --paste
-    --request-review
     remove
+    make next-exercise and previous-exercise check if there are more
 
 usage
 =====
@@ -25,6 +24,13 @@ usage
 
     ./tmc.py set-course ID                          # sets the default CourseID, so that you don't need to write it again
     ./tmc.py unset-course                           # resets the default CourseID
+
+    ./tmc.py set-exercise ID                        # sets the default ExerciseID
+    ./tmc.py unset-exercise                         # resets the default ExerciseID
+    ./tmc.py next-exercise                          # goes to the next exercise
+    ./tmc.py previous-exercise                      # goes to the previous exercise
+
+    ./tmc.py help [command]
 
 installation
 ============
