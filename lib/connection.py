@@ -129,11 +129,11 @@ class Connection:
 
         v.log(1, "Zipping up")
         filename = os.path.join("tmp", "submit_"+str(exercise.id)+".zip")
-        dirname = os.path.join(exercise.course.name, exercise.name_week, exercise.name_name)
+        dirname = os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "src")
         zipfp = zipfile.ZipFile(filename, "w")
         for root, dirs, files in os.walk(dirname):
             for file in files:
-                zipfp.write(os.path.join(root, file), os.path.join(exercise.name_week, os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..'))), zipfile.ZIP_DEFLATED)
+                zipfp.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..')), zipfile.ZIP_DEFLATED)
         zipfp.close()
 
         r = requests.post("%s/exercises/%d/submissions.json" % (
