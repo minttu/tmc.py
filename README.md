@@ -21,7 +21,10 @@ usage
     ./tmc.py list-courses                           # lists all courses
     ./tmc.py list-exercises ID                      # lists all exercises from course ID
     ./tmc.py download-exercises ID                  # downloads all exercises from course ID
-    ./tmc.py submit-exercise CourseID ExerciseID    # submits a exercise for testing
+    ./tmc.py submit-exercise ExerciseID CourseID    # submits a exercise for testing
+
+    ./tmc.py set-course ID                          # sets the default CourseID, so that you don't need to write it again
+    ./tmc.py unset-course                           # resets the default CourseID
 
 installation
 ============
