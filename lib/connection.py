@@ -16,6 +16,7 @@ from course import Course
 from exercise import Exercise
 import shutil
 import time
+from config import Config
 
 class Connection:
     spinner = ['\\', '|', '/', '-']
@@ -71,10 +72,7 @@ class Connection:
         return None
 
     def download_exercises(self, exercises):
-        for i in exercises:
-            self.download_exercise(i)
-
-    def download_exercise(self, exercise):
+        exercise = exercises[0]
         try:
             os.mkdir("tmp")
         except OSError:
@@ -84,6 +82,14 @@ class Connection:
         except OSError:
             pass
 
+        with open(os.path.join(exercise.course.name, ".tmc_course_id"), "w") as fp:
+            fp.write(str(exercise.course.id))
+            fp.close()
+
+        for i in exercises:
+            self.download_exercise(i)
+
+    def download_exercise(self, exercise):
         dirname = os.path.join(exercise.course.name,
             exercise.name_week,
             exercise.name_name)
@@ -112,6 +118,13 @@ class Connection:
         v.log(0, "Extracting \"%s\"" % dirname)
         zipfp = zipfile.ZipFile(filename)
         zipfp.extractall(exercise.course.name)
+
+        with open(os.path.join(dirname, ".tmc_exercise_id"), "w") as fp:
+            fp.write(str(exercise.id))
+            fp.close()
+        with open(os.path.join(dirname, ".tmc_course_id"), "w") as fp:
+            fp.write(str(exercise.course.id))
+            fp.close()
 
         os.remove(filename)
 
@@ -162,6 +175,7 @@ class Connection:
             exit(-1)
         if data["status"] != "processing":
             data["id"] = submission_url.split("submissions/")[1].split(".json")[0]
+            Config.last_submission(int(data["id"]))
             self.stopspin()
             callback(data)
         return data["status"]

@@ -10,6 +10,7 @@
 import json
 import sys
 import getpass
+import os
 from vlog import VLog as v
 
 class Config:
@@ -100,3 +101,51 @@ class Config:
             self.save()
         else:
             v.log(-1, "You need to set-exercise before trying to go to the previous one!")
+
+    @staticmethod
+    def last_submission(to=-1):
+        if to == -1:
+            lastsub = None
+            if os.path.isdir("tmp"):
+                try:
+                    with open(os.path.join("tmp", ".last_submission"), "r") as fp:
+                        lastsub = int(fp.readline())
+                        fp.close()
+                except IOError:
+                    pass
+            return lastsub
+        else:
+            try:
+                os.mkdir("tmp")
+            except OSError:
+                pass
+            try:
+                with open(os.path.join("tmp", ".last_submission"), "w") as fp:
+                    fp.write(str(to))
+                    fp.close()
+            except IOError:
+                pass
+
+    @staticmethod
+    def get_course_id(folder):
+        course_id = None
+        if os.path.isdir(folder):
+            try:
+                with open(os.path.join(folder, ".tmc_course_id"), "r") as fp:
+                    course_id = int(fp.readline())
+                    fp.close()
+            except IOError:
+                pass
+        return course_id
+
+    @staticmethod
+    def get_exercise_id(folder):
+        exercise_id = None
+        if os.path.isdir(folder):
+            try:
+                with open(os.path.join(folder, ".tmc_exercise_id"), "r") as fp:
+                    exercise_id = int(fp.readline())
+                    fp.close()
+            except IOError:
+                pass
+        return exercise_id
