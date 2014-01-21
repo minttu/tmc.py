@@ -13,8 +13,19 @@ todo
     remove
     make next-exercise and previous-exercise check if there are more
 
-usage
-=====
+real world usage
+================
+
+    ./tmc.py init
+    ./tmc.py set-course 18
+    ./tmc.py download-exercises
+    ./tmc.py set-exercise 2540
+
+    # untill you have completed the course
+    ./tmc.py submit-exercise && ./tmc.py next-exercise
+
+commands
+========
 
     ./tmc.py init                                   # asks for server, username and password and saves them for future usage
     ./tmc.py list-courses                           # lists all courses
@@ -31,6 +42,7 @@ usage
     ./tmc.py previous-exercise                      # goes to the previous exercise
 
     ./tmc.py help [command]
+
 
 installation
 ============

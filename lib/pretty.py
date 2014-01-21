@@ -68,8 +68,11 @@ class Pretty:
             for i in data["test_cases"]:
                 if not i["successful"]:
                     print "\033[31m%s\033[0m" % i["message"]
+            exit(-1)
         elif data["status"] == "error":
             print "\033[31m%s\033[0m" % data["error"]
+            exit(-1)
+        exit(0)
         
 
     @staticmethod
