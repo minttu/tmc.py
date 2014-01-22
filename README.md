@@ -25,7 +25,7 @@ real world usage
     ./tmc.py set-exercise k2014-mooc/viikko1/Viikko1_001.Nimi
 
     # untill you have completed the course
-    ./tmc.py submit-exercise && ./tmc.py next-exercise
+    ./tmc.py test-exercise && ./tmc.py submit-exercise && ./tmc.py next-exercise
 
 commands
 ========
@@ -39,6 +39,7 @@ You don't need to provide IDs again if you use `set-exercise` and `set-course`.
     ./tmc.py download-exercises [ID]                # downloads all exercises from course ID
     ./tmc.py update-exercises [ID]                  # updates all exercises without overriding user code
     ./tmc.py submit-exercise [ExerciseID][CourseID] # submits a exercise for testing
+    ./tmc.py test-exercise [ExerciseID][CourseID]   # tests exercise locally
 
     ./tmc.py set-course [ID]                        # sets the default CourseID, so that you don't need to write it again
     ./tmc.py unset-course                           # resets the default CourseID
@@ -58,6 +59,7 @@ installation
 
     get python2.7
     get pip
+    optionally also get apache-ant for local tests
     pip install -r requirements.txt
 
 license

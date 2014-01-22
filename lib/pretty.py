@@ -108,6 +108,9 @@ class Pretty:
             print Pretty.string_to_pretty(i["message"], i["success"])
         if len(data) == 0:
             print Pretty.string_to_pretty("All good!", True)
+            exit(0)
+        else:
+            exit(-1)
         
 
     @staticmethod
