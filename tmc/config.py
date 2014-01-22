@@ -49,7 +49,7 @@ class Config:
         except IOError:
             v.log(-1, "Could not load configuration. Run \"tmc init\" first!")
             exit(-1)
-        if "username" in data and "paste" in data:
+        if "username" in data and "password" in data:
             self.token = base64.b64encode(b"%s:%s" %(data["username"], self["password"]))
         elif "token" in data:
             self.token = data["token"]
