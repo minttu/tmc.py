@@ -35,10 +35,10 @@ class Connection:
             auth=self.auth,
             params={"api_version": 7})
 
-        if self.check_error(r.json()):
-            return None
+        data = self.extract_json(r)
+
         courses = []
-        for course in r.json()["courses"]:
+        for course in data["courses"]:
             courses.append(Course(int(course["id"]), course["name"]))
         return courses
 
@@ -51,11 +51,10 @@ class Connection:
             auth=self.auth,
             params={"api_version": 7})
 
-        if self.check_error(r.json()):
-            return None
+        data = self.extract_json(r)
         
-        newcourse = Course(int(r.json()["course"]["id"]), r.json()["course"]["name"])
-        for i in r.json()["course"]["exercises"]:
+        newcourse = Course(int(data["course"]["id"]), data["course"]["name"])
+        for i in data["course"]["exercises"]:
             tmp = Exercise(newcourse, int(i["id"]), i["name"])
             tmp.setDeadline(i["deadline_description"], i["deadline"])
             tmp.attempted = i["attempted"]
@@ -179,26 +178,21 @@ class Connection:
 
         os.remove(filename)
 
-        if 'submission_url' in r.json():
+        data = self.extract_json(r)
+
+        if "submission_url" in data:
             v.log(1, "Successfully submitted %s.\nPlease wait." % exercise.name)
-            v.log(1, "URL: %s" % r.json()["submission_url"])
+            v.log(1, "URL: %s" % data["submission_url"])
+        else:
+            v.log(-1, "Didn't get a submission url. That's bad.")
         
-        while self.check_submission_url(r.json()["submission_url"], callback) == "processing":
+        while self.check_submission_url(data["submission_url"], callback) == "processing":
             time.sleep(1)
 
     def check_submission_url(self, submission_url, callback):
         r = requests.get(submission_url, auth=self.auth)
-        try:
-            data = r.json()
-        except ValueError:
-            self.stopspin()
-            v.log(-1, "Didn't get valid JSON. Probably a server problem.")
-            exit(-1)
-        self.spin()
-        if "error" in data:
-            self.stopspin()
-            v.log(-1, "Not authorized to view that submission or that submission doe\'s not exist!")
-            exit(-1)
+        data = self.extract_json(r)
+
         if data["status"] != "processing":
             data["id"] = submission_url.split("submissions/")[1].split(".json")[0]
             Config.last_submission(int(data["id"]))
@@ -218,6 +212,28 @@ class Connection:
             sys.stdout.write("\b")
             sys.stdout.flush()
         self.spinindex = 0
+
+    def extract_json(self, request):
+        if request is None:
+            return
+
+        json = None
+        try:
+            json = request.json()
+        except ValueError:
+            self.stopspin()
+            if "500" in request.text:
+                v.log(-1, "Server encountered a internal error. (500)")
+            else:
+                v.log(-1, "Didn't get valid JSON. This is a server problem.")
+            exit(-1)
+
+        if "error" in json:
+            self.stopspin()
+            v.log(-1, json["error"])
+            exit(-1)
+
+        return json
 
     def check_error(self, data):
         if "error" in data:
