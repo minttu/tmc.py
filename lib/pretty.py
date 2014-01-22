@@ -65,7 +65,29 @@ class Pretty:
         id = int(data["id"])
         points = len(data["points"])
         maxpoints = points + len(data["missing_review_points"])
-        print u"ID: %d | Status: %s │ Points: %d" % (id, status, points)
+
+        if "processing_time" in data:
+            processing_time = u" │ Processing time: %ss" % int(data["processing_time"])
+        else:
+            processing_time = ""
+
+        if "paste_url" in data:
+            paste = u" │ Paste: %s" % data["paste_url"]
+        else:
+            paste = ""
+
+        if "requests_review" in data and "reviewed" in data:
+            if data["requests_review"]:
+                if data["reviewed"]:
+                    review = " │ Review: reviewed"
+                else:
+                    review = " │ Review: requested"
+            else:
+                review = ""
+        else:
+            review = ""
+
+        print u"ID: %d │ Status: %s │ Points: %d %s%s%s" % (id, status, points, processing_time, paste, review)
         if data["status"] == "fail":
             for i in data["test_cases"]:
                 if not i["successful"]:

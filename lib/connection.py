@@ -18,6 +18,7 @@ from exercise import Exercise
 import shutil
 import time
 from config import Config
+import subprocess
 
 class Connection:
     spinner = ['\\', '|', '/', '-']
@@ -192,6 +193,7 @@ class Connection:
     def check_submission_url(self, submission_url, callback):
         r = requests.get(submission_url, auth=self.auth)
         data = self.extract_json(r)
+        self.spin()
 
         if data["status"] != "processing":
             data["id"] = submission_url.split("submissions/")[1].split(".json")[0]

@@ -73,56 +73,9 @@ def submit_exercise(exercise, course, *args, **kwargs):
     conf = Config()
     conf.load()
 
-    if type(exercise) is list:
-        exercisetmp = exercise[0]
-        if len(exercise) > 1:
-            course = exercise[1] # oh my god please don't
-        else:
-            course = None
-        exercise = exercisetmp
-
-    if course is None:
-            course = Config.get_course_id(exercise)
-            if course is None:
-                if conf.default_course != -1:
-                    course = int(conf.default_course)
-                    v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
-                else:
-                    v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
-                    exit(-1)
-    else:
-        try:
-            value = int(course)
-            course = value
-        except ValueError:
-            course = Config.get_course_id(course)
-            if course is None:
-                v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
-                exit(-1)
-
-    try:
-        value = int(exercise)
-        exercise = value
-    except ValueError:
-        exercise = Config.get_exercise_id(exercise)
-        if exercise is None:
-            v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
-            exit(-1)
-
-    if course == -1:
-        if conf.default_course != -1:
-            course = int(conf.default_course)
-            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
-        else:
-            v.log(-1, "You need to supply a course ID or save one with set-course!")
-            return
-    if exercise == -1:
-        if conf.default_exercise != -1:
-            exercise = int(conf.default_exercise)
-            v.log(0, "Using exercise ID %d. (You can reset this with unset-exercise)" % exercise)
-        else:
-            v.log(-1, "You need to supply a exercise ID or save one with set-exercise!")
-            return
+    tmp = resolve_exercise_and_course(conf, exercise, course)
+    exercise = tmp[0]
+    course = tmp[1]
 
     Pretty.trace = kwargs["trace"]
     conn = connection.Connection(conf.server, conf.auth)
@@ -195,6 +148,60 @@ def submission(submissionid, *args, **kwargs):
     conn = connection.Connection(conf.server, conf.auth)
     while conn.check_submission_url("%ssubmissions/%d.json?api_version=7" % (conn.server, int(submissionid)), Pretty.print_submission) == "processing":
         time.sleep(1)
+
+def resolve_exercise_and_course(conf, exercise, course):
+    if type(exercise) is list:
+        exercisetmp = exercise[0]
+        if len(exercise) > 1:
+            course = exercise[1] # oh my god please don't
+        else:
+            course = None
+        exercise = exercisetmp
+
+    if course is None:
+        course = Config.get_course_id(exercise)
+        if course is None:
+            if conf.default_course != -1:
+                course = int(conf.default_course)
+                v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
+            else:
+                v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
+                exit(-1)
+    else:
+        try:
+            value = int(course)
+            course = value
+        except ValueError:
+            course = Config.get_course_id(course)
+            if course is None:
+                v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
+                exit(-1)
+
+    try:
+        value = int(exercise)
+        exercise = value
+    except ValueError:
+        exercise = Config.get_exercise_id(exercise)
+        if exercise is None:
+            v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
+            exit(-1)
+
+    if course == -1:
+        if conf.default_course != -1:
+            course = int(conf.default_course)
+            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
+        else:
+            v.log(-1, "You need to supply a course ID or save one with set-course!")
+            exit(-1)
+    if exercise == -1:
+        if conf.default_exercise != -1:
+            exercise = int(conf.default_exercise)
+            v.log(0, "Using exercise ID %d. (You can reset this with unset-exercise)" % exercise)
+        else:
+            v.log(-1, "You need to supply a exercise ID or save one with set-exercise!")
+            exit(-1)
+
+    return (exercise, course)
 
 def resolve_course(conf, course):
     if type(course) is list:
