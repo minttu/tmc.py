@@ -13,21 +13,21 @@ import sys
 import getpass
 import os
 from vlog import VLog as v
+import requests
+import base64
 
 class Config:
     def __init__(self):
-        self.username = ""
-        self.password = ""
         self.server = ""
-        self.auth = ()
+        self.auth = None
+        self.token = ""
         self.filename = "tmc_config.json"
         self.default_course = -1
         self.default_exercise = -1
 
     def save(self):
         v.log(0, "Saving configuration file \"%s\"" % self.filename)
-        data = {"username": self.username,
-                "password": self.password,
+        data = {"token": self.token,
                 "server": self.server,
                 "default_course": self.default_course,
                 "default_exercise": self.default_exercise}
@@ -49,22 +49,30 @@ class Config:
         except IOError:
             v.log(-1, "Could not load configuration. Run \"tmc init\" first!")
             exit(-1)
-        self.username = data["username"]
-        self.password = data["password"]
+        if "username" in data and "paste" in data:
+            self.token = base64.b64encode(b"%s:%s" %(data["username"], self["password"]))
+        elif "token" in data:
+            self.token = data["token"]
+
+        self.auth = {"Authorization": "Basic %s" % self.token}
+
         self.server = data["server"]
         if "default_course" in data:
             self.default_course = int(data["default_course"])
         if "default_exercise" in data:
             self.default_exercise = int(data["default_exercise"])
-        self.auth = (self.username, self.password)
 
     def create_new(self):
         v.log(0, "Creating new configuration.")
         self.server = raw_input("Server url [http://tmc.mooc.fi/mooc/]: ")
         if len(self.server) == 0:
             self.server = "http://tmc.mooc.fi/mooc/"
-        self.username = raw_input("Username: ")
-        self.password = getpass.getpass("Password: ")
+        username = raw_input("Username: ")
+        password = getpass.getpass("Password: ")
+
+        self.token = base64.b64encode(b"%s:%s" %(username, password))
+        self.auth = {"Authorization": "Basic %s" % self.token}
+
         self.save()
 
     def set_course(self, id):

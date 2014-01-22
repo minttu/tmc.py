@@ -35,7 +35,7 @@ class Connection:
 
     def get_courses(self):
         r = requests.get("%scourses.json" % self.server,
-            auth=self.auth,
+            headers=self.auth,
             params={"api_version": 7})
 
         data = self.extract_json(r)
@@ -51,7 +51,7 @@ class Connection:
         else:
             id = course.id
         r = requests.get("%scourses/%d.json" % (self.server, id),
-            auth=self.auth,
+            headers=self.auth,
             params={"api_version": 7})
 
         data = self.extract_json(r)
@@ -113,7 +113,7 @@ class Connection:
         with open(filename, "wb") as fp:
             r = requests.get("%sexercises/%d.zip" % (self.server, exercise.id),
                 stream=True,
-                auth=self.auth,
+                headers=self.auth,
                 params={"api_version": 7})
             
             for block in r.iter_content(1024):
@@ -203,7 +203,7 @@ class Connection:
 
         r = requests.post("%s/exercises/%d/submissions.json" % (
             self.server, exercise.id),
-            auth = self.auth,
+            headers = self.auth,
             data = {"api_version": 7, "commit": "Submit"},
             params = params,
             files = {"submission[file]": open(filename, "rb")})
@@ -222,7 +222,7 @@ class Connection:
             time.sleep(1)
 
     def check_submission_url(self, submission_url, callback):
-        r = requests.get(submission_url, auth=self.auth)
+        r = requests.get(submission_url, headers=self.auth)
         data = self.extract_json(r)
         self.spin()
 
