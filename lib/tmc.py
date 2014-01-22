@@ -32,25 +32,7 @@ def list_exercises(course):
     conf = Config()
     conf.load()
 
-    if type(course) is list:
-        course = course[0]
-
-    try:
-        value = int(course)
-        course = value
-    except ValueError:
-        course = Config.get_course_id(course)
-        if course is None:
-            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
-            exit(-1)
-
-    if course == -1:
-        if conf.default_course != -1:
-            course = int(conf.default_course)
-            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
-        else:
-            v.log(-1, "You need to supply a course ID or save one with set-course!")
-            return
+    course = resolve_course(conf, course)
 
     conn = connection.Connection(conf.server, conf.auth)
     Pretty.list_exercises(conf.default_exercise, conn.get_course(int(course)).exercises)
@@ -62,25 +44,7 @@ def download_exercises(course, *args, **kwargs):
     conf = Config()
     conf.load()
 
-    if type(course) is list:
-        course = course[0]
-
-    try:
-        value = int(course)
-        course = value
-    except ValueError:
-        course = Config.get_course_id(course)
-        if course is None:
-            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
-            exit(-1)
-
-    if course == -1:
-        if conf.default_course != -1:
-            course = int(conf.default_course)
-            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
-        else:
-            v.log(-1, "You need to supply a course ID or save one with set-course!")
-            return
+    course = resolve_course(conf, course)
 
     conn = connection.Connection(conf.server, conf.auth)
     conn.force = kwargs["force"]
@@ -93,25 +57,7 @@ def update_exercises(course, *args, **kwargs):
     conf = Config()
     conf.load()
 
-    if type(course) is list:
-        course = course[0]
-
-    try:
-        value = int(course)
-        course = value
-    except ValueError:
-        course = Config.get_course_id(course)
-        if course is None:
-            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
-            exit(-1)
-
-    if course == -1:
-        if conf.default_course != -1:
-            course = int(conf.default_course)
-            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
-        else:
-            v.log(-1, "You need to supply a course ID or save one with set-course!")
-            return
+    course = resolve_course(conf, course)
 
     conn = connection.Connection(conf.server, conf.auth)
     conn.force = kwargs["force"]
@@ -188,14 +134,7 @@ def set_course(course):
     conf = Config()
     conf.load()
 
-    try:
-        value = int(course)
-        course = value
-    except ValueError:
-        course = Config.get_course_id(course)
-        if course is None:
-            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
-            exit(-1)
+    course = resolve_course(conf, course)
 
     conf.set_course(course)
 
@@ -256,6 +195,29 @@ def submission(submissionid, *args, **kwargs):
     conn = connection.Connection(conf.server, conf.auth)
     while conn.check_submission_url("%ssubmissions/%d.json?api_version=7" % (conn.server, int(submissionid)), Pretty.print_submission) == "processing":
         time.sleep(1)
+
+def resolve_course(conf, course):
+    if type(course) is list:
+        course = course[0]
+
+    try:
+        value = int(course)
+        course = value
+    except ValueError:
+        course = Config.get_course_id(course)
+        if course is None:
+            v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
+            exit(-1)
+
+    if course == -1:
+        if conf.default_course != -1:
+            course = int(conf.default_course)
+            v.log(0, "Using course ID %d. (You can reset this with unset-course)" % course)
+        else:
+            v.log(-1, "You need to supply a course ID or save one with set-course!")
+            exit(-1)
+
+    return course
 
 def main():
     parser = argh.ArghParser()
