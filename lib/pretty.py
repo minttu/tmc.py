@@ -79,9 +79,9 @@ class Pretty:
         if "requests_review" in data and "reviewed" in data:
             if data["requests_review"]:
                 if data["reviewed"]:
-                    review = " │ Review: reviewed"
+                    review = u" │ Review: reviewed"
                 else:
-                    review = " │ Review: requested"
+                    review = u" │ Review: requested"
             else:
                 review = ""
         else:
