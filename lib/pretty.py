@@ -87,7 +87,7 @@ class Pretty:
         else:
             review = ""
 
-        print u"ID: %d │ Status: %s │ Points: %d %s%s%s" % (id, status, points, processing_time, paste, review)
+        print u"ID: %d │ Status: %s │ Points: %d%s%s%s" % (id, status, points, processing_time, paste, review)
         if data["status"] == "fail":
             for i in data["test_cases"]:
                 if not i["successful"]:
