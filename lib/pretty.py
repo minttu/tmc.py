@@ -101,6 +101,13 @@ class Pretty:
             print "\033[31m%s\033[0m" % data["error"]
             exit(-1)
         exit(0)
+
+    @staticmethod
+    def print_local_test(data):
+        for i in data:
+            print Pretty.string_to_pretty(i["message"], i["success"])
+        if len(data) == 0:
+            print Pretty.string_to_pretty("All good!", True)
         
 
     @staticmethod

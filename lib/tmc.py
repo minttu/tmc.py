@@ -83,6 +83,21 @@ def submit_exercise(exercise, course, *args, **kwargs):
     conn.review = kwargs["review"]
     conn.submit_exercise(conn.get_exercise(int(course), int(exercise)), Pretty.print_submission)
 
+@argh.decorators.arg("exercise", nargs="*", default="-1")
+@argh.decorators.arg("course", nargs="*", default="-1")
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def test_exercise(exercise, course, *args, **kwargs):
+    conf = Config()
+    conf.load()
+
+    tmp = resolve_exercise_and_course(conf, exercise, course)
+    exercise = tmp[0]
+    course = tmp[1]
+
+    Pretty.trace = kwargs["trace"]
+    conn = connection.Connection(conf.server, conf.auth)
+    conn.test_exercise(conn.get_exercise(int(course), int(exercise)), Pretty.print_local_test)
+
 def set_course(course):
     conf = Config()
     conf.load()
@@ -228,5 +243,5 @@ def resolve_course(conf, course):
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([init, list_courses, list_exercises, download_exercises, update_exercises, submit_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
+    parser.add_commands([init, list_courses, list_exercises, download_exercises, update_exercises, submit_exercise, test_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
     parser.dispatch()

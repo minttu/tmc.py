@@ -19,6 +19,8 @@ import shutil
 import time
 from config import Config
 import subprocess
+import glob
+import xml.etree.ElementTree as ET
 
 class Connection:
     spinner = ['\\', '|', '/', '-']
@@ -142,6 +144,35 @@ class Connection:
             fp.close()
 
         os.remove(filename)
+
+    # feels bad to place this here...
+    def test_exercise(self, exercise, callback):
+        if exercise.downloaded == False:
+            v.log(-1, """Can't test something you have not even downloaded. 
+                You might be in a wrong directory.""")
+            exit(-1)
+        v.log(0, "Testing %s locally. This will take a while." % exercise.name)
+
+        # ant
+
+        s = subprocess.Popen(["ant", "test", "-S"], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"), cwd=os.path.join(os.getcwd(), exercise.course.name, exercise.name_week, exercise.name_name))
+        s.communicate()
+
+        for filename in glob.glob("%s*.xml" % (os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "build", "test", "results") + os.sep)):
+            try:
+                with open(filename, "r") as fp:
+                    root = ET.fromstring(fp.read())
+                    fp.close()
+                    for testcase in root.findall("testcase"):
+                        dataarr = []
+                        for failure in testcase.findall("failure"):
+                            data = {}
+                            data["message"] = failure.get("message")
+                            data["success"] = False
+                            dataarr.append(data)
+                        callback(dataarr)
+            except IOError:
+                pass
 
     def submit_exercise(self, exercise, callback):
         if exercise.downloaded == False:
