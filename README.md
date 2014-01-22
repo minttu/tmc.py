@@ -1,7 +1,9 @@
 tmc.py
 ======
 
-A python CLI for TestMyCode. Note: this is still under developement and might have fatal bugs.
+A Python2 terminal client for working with a TestMyCode server.
+Note: this is still under developement and might have fatal bugs.
+Tested under GNU/Linux, but might work with other platforms.
 
 todo
 ====
