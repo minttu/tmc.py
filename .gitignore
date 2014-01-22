@@ -1,5 +1,8 @@
-demo/*
-*mooc*
-*.pyc
+*.py[cod]
+build/
+dist/
+eggs/
+*.egg-info/
+.installed.cfg
+*.egg
 *.json
-tmp/*

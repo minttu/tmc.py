@@ -60,7 +60,7 @@ installation
     get python2.7
     get pip
     optionally also get apache-ant for local tests
-    pip install -r requirements.txt
+    pip install tmc
 
 license
 =======

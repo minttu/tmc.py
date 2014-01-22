@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 # tmccli / tmc.py
@@ -9,10 +10,10 @@
 # Released under the MIT License, see LICENSE for details
 
 import argh
-from vlog import VLog as v
-from config import Config
-import connection
-from pretty import Pretty
+from tmc.vlog import VLog as v
+from tmc.config import Config
+import tmc.connection as connection
+from tmc.pretty import Pretty
 import os
 
 def init():
@@ -245,3 +246,6 @@ def main():
     parser = argh.ArghParser()
     parser.add_commands([init, list_courses, list_exercises, download_exercises, update_exercises, submit_exercise, test_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
     parser.dispatch()
+
+if __name__ == '__main__':
+    main()
