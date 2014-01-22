@@ -21,6 +21,7 @@ from config import Config
 import subprocess
 import glob
 import xml.etree.ElementTree as ET
+from StringIO import StringIO
 
 class Connection:
     spinner = ['\\', '|', '/', '-']
@@ -78,10 +79,6 @@ class Connection:
     def download_exercises(self, exercises):
         exercise = exercises[0]
         try:
-            os.mkdir("tmp")
-        except OSError:
-            pass
-        try:
             os.mkdir(exercise.course.name)
         except OSError:
             pass
@@ -98,7 +95,7 @@ class Connection:
             exercise.name_week,
             exercise.name_name)
 
-        filename = os.path.join("tmp", "%i.zip" % exercise.id)
+        tmpfile = StringIO()
 
         if os.path.isdir(dirname) and self.force == False and self.update == False:
             v.log(0, "Skipping \"%s\" since already extracted." % dirname)
@@ -110,16 +107,15 @@ class Connection:
                 fp.close()
             return
 
-        with open(filename, "wb") as fp:
-            r = requests.get("%sexercises/%d.zip" % (self.server, exercise.id),
-                stream=True,
-                headers=self.auth,
-                params={"api_version": 7})
-            
-            for block in r.iter_content(1024):
-                if not block:
-                    break
-                fp.write(block)
+        r = requests.get("%sexercises/%d.zip" % (self.server, exercise.id),
+            stream=True,
+            headers=self.auth,
+            params={"api_version": 7})
+        
+        for block in r.iter_content(1024):
+            if not block:
+                break
+            tmpfile.write(block)
 
         dirname = os.path.join(exercise.course.name,
             exercise.name_week,
@@ -127,13 +123,13 @@ class Connection:
 
         if self.update == True:
             v.log(0, "Extracting/Updating \"%s\"" % dirname)
-            zipfp = zipfile.ZipFile(filename)
+            zipfp = zipfile.ZipFile(tmpfile)
             for i in zipfp.infolist():
                 if "/src/" not in i.filename:
                     zipfp.extract(i, exercise.course.name)
         else:
             v.log(0, "Extracting \"%s\"" % dirname)
-            zipfp = zipfile.ZipFile(filename)
+            zipfp = zipfile.ZipFile(tmpfile)
             zipfp.extractall(exercise.course.name)
 
         with open(os.path.join(dirname, ".tmc_exercise_id"), "w") as fp:
@@ -142,8 +138,6 @@ class Connection:
         with open(os.path.join(dirname, ".tmc_course_id"), "w") as fp:
             fp.write(str(exercise.course.id))
             fp.close()
-
-        os.remove(filename)
 
     # feels bad to place this here...
     def test_exercise(self, exercise, callback):
@@ -181,15 +175,11 @@ class Connection:
             exit(-1)
         v.log(0, "Submitting %s. This will take a while." % exercise.name)
 
-        try:
-            os.mkdir("tmp")
-        except OSError:
-            pass
 
         v.log(1, "Zipping up")
-        filename = os.path.join("tmp", "submit_"+str(exercise.id)+".zip")
+        tmpfile = StringIO()
         dirname = os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "src")
-        zipfp = zipfile.ZipFile(filename, "w")
+        zipfp = zipfile.ZipFile(tmpfile, "w")
         for root, dirs, files in os.walk(dirname):
             for file in files:
                 zipfp.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..')), zipfile.ZIP_DEFLATED)
@@ -206,9 +196,7 @@ class Connection:
             headers = self.auth,
             data = {"api_version": 7, "commit": "Submit"},
             params = params,
-            files = {"submission[file]": open(filename, "rb")})
-
-        os.remove(filename)
+            files = {"submission[file]": ('submission.zip', tmpfile.getvalue())})
 
         data = self.extract_json(r)
 

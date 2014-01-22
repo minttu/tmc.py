@@ -115,21 +115,16 @@ class Config:
     def last_submission(to=-1):
         if to == -1:
             lastsub = None
-            if os.path.isdir("tmp"):
-                try:
-                    with open(os.path.join("tmp", ".last_submission"), "r") as fp:
-                        lastsub = int(fp.readline())
-                        fp.close()
-                except IOError:
-                    pass
+            try:
+                with open(os.path.join(".last_submission"), "r") as fp:
+                    lastsub = int(fp.readline())
+                    fp.close()
+            except IOError:
+                pass
             return lastsub
         else:
             try:
-                os.mkdir("tmp")
-            except OSError:
-                pass
-            try:
-                with open(os.path.join("tmp", ".last_submission"), "w") as fp:
+                with open(os.path.join(".last_submission"), "w") as fp:
                     fp.write(str(to))
                     fp.close()
             except IOError:
