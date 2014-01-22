@@ -24,6 +24,8 @@ class Config:
         self.filename = "tmc_config.json"
         self.default_course = -1
         self.default_exercise = -1
+        self.original_dir = None
+        self.new_dir = None
 
     def save(self):
         v.log(0, "Saving configuration file \"%s\"" % self.filename)
@@ -42,6 +44,15 @@ class Config:
     def load(self):
         v.log(1, "Loading configuration from \"%s\"" % self.filename)
         data = None
+
+        curpath = os.getcwd()
+        for i in range(len(curpath.split(os.path.sep))):
+            if os.path.isfile(self.filename):
+                self.original_dir = curpath
+                self.new_dir = os.getcwd()
+                break
+            os.chdir("..")
+
         try:
             with open(self.filename, "r") as fp:
                 data = json.load(fp)
@@ -130,9 +141,12 @@ class Config:
             except IOError:
                 pass
 
-    @staticmethod
-    def get_course_id(folder):
+    def get_course_id(self, folder):
         course_id = None
+
+        if self.original_dir is not None:
+            os.chdir(self.original_dir)
+
         if os.path.isdir(folder):
             try:
                 with open(os.path.join(folder, ".tmc_course_id"), "r") as fp:
@@ -140,11 +154,18 @@ class Config:
                     fp.close()
             except IOError:
                 pass
+
+        if self.new_dir is not None:
+            os.chdir(self.new_dir)
+
         return course_id
 
-    @staticmethod
-    def get_exercise_id(folder):
+    def get_exercise_id(self, folder):
         exercise_id = None
+
+        if self.original_dir is not None:
+            os.chdir(self.original_dir)
+
         if os.path.isdir(folder):
             try:
                 with open(os.path.join(folder, ".tmc_exercise_id"), "r") as fp:
@@ -152,4 +173,8 @@ class Config:
                     fp.close()
             except IOError:
                 pass
+
+        if self.new_dir is not None:
+            os.chdir(self.new_dir)
+
         return exercise_id

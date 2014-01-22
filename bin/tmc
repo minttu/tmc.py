@@ -120,7 +120,7 @@ def set_exercise(exercise):
         value = int(exercise)
         exercise = value
     except ValueError:
-        exercise = Config.get_exercise_id(exercise)
+        exercise = conf.get_exercise_id(exercise)
         if exercise is None:
             v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
             exit(-1)
@@ -175,7 +175,7 @@ def resolve_exercise_and_course(conf, exercise, course):
         exercise = exercisetmp
 
     if course is None:
-        course = Config.get_course_id(exercise)
+        course = conf.get_course_id(exercise)
         if course is None:
             if conf.default_course != -1:
                 course = int(conf.default_course)
@@ -188,7 +188,7 @@ def resolve_exercise_and_course(conf, exercise, course):
             value = int(course)
             course = value
         except ValueError:
-            course = Config.get_course_id(course)
+            course = conf.get_course_id(course)
             if course is None:
                 v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
                 exit(-1)
@@ -197,7 +197,7 @@ def resolve_exercise_and_course(conf, exercise, course):
         value = int(exercise)
         exercise = value
     except ValueError:
-        exercise = Config.get_exercise_id(exercise)
+        exercise = conf.get_exercise_id(exercise)
         if exercise is None:
             v.log(-1, "If you really want to provide me a string, atleast point it to a exercise folder!")
             exit(-1)
@@ -227,7 +227,7 @@ def resolve_course(conf, course):
         value = int(course)
         course = value
     except ValueError:
-        course = Config.get_course_id(course)
+        course = conf.get_course_id(course)
         if course is None:
             v.log(-1, "If you really want to provide me a string, atleast point it to a course folder!")
             exit(-1)
