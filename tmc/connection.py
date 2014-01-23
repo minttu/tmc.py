@@ -25,9 +25,10 @@ from StringIO import StringIO
 
 class Connection:
     spinner = ['\\', '|', '/', '-']
-    def __init__(self, server, auth):
-        self.server = server
-        self.auth = auth
+    def __init__(self, conf):
+        self.conf = conf
+        self.server = conf.server
+        self.auth = conf.auth
         self.force = False
         self.paste = False
         self.review = False
@@ -152,7 +153,9 @@ class Connection:
         s = subprocess.Popen(["ant", "test", "-S"], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"), cwd=os.path.join(os.getcwd(), exercise.course.name, exercise.name_week, exercise.name_name))
         s.communicate()
 
-        for filename in glob.glob("%s*.xml" % (os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "build", "test", "results") + os.sep)):
+        files = glob.glob("%s*.xml" % (os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "build", "test", "results") + os.sep))
+
+        for filename in files:
             try:
                 with open(filename, "r") as fp:
                     root = ET.fromstring(fp.read())
@@ -167,6 +170,10 @@ class Connection:
                         callback(dataarr)
             except IOError:
                 pass
+
+        if len(files) == 0:
+            v.log(-1, "Something wen't wrong with testing!")
+            exit(-1)
 
     def submit_exercise(self, exercise, callback):
         if exercise.downloaded == False:
@@ -220,6 +227,11 @@ class Connection:
             self.stopspin()
             callback(data)
         return data["status"]
+
+    def select_course(self):
+        data = self.get_courses()
+        char = sys.stdin.read(1)
+        print 'You pressed %s' % char
 
     def spin(self):
         if self.spinindex != 0:

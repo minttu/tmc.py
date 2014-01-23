@@ -19,13 +19,16 @@ import os
 def init():
     conf = Config()
     conf.create_new()
-    v.log(0, "You can set your default course ID with \"tmc set-course ID\"")
+
+    #conn = connection.Connection(conf)
+    #conn.select_course()
+    #v.log(0, "You can set your default course ID with \"tmc set-course ID\"")
 
 def list_courses():
     conf = Config()
     conf.load()
 
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     Pretty.list_courses(conf.default_course, conn.get_courses())
 
 @argh.decorators.arg("course", nargs="*", default="-1")
@@ -35,7 +38,7 @@ def list_exercises(course):
 
     course = resolve_course(conf, course)
 
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     Pretty.list_exercises(conf.default_exercise, conn.get_course(int(course)).exercises)
 
 @argh.decorators.arg("course", nargs="*", default="-1")
@@ -47,7 +50,7 @@ def download_exercises(course, *args, **kwargs):
 
     course = resolve_course(conf, course)
 
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     conn.force = kwargs["force"]
     conn.update = kwargs["update"]
     conn.download_exercises(conn.get_course(int(course)).exercises)
@@ -60,7 +63,7 @@ def update_exercises(course, *args, **kwargs):
 
     course = resolve_course(conf, course)
 
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     conn.force = kwargs["force"]
     conn.update = True
     conn.download_exercises(conn.get_course(int(course)).exercises)
@@ -79,7 +82,7 @@ def submit_exercise(exercise, course, *args, **kwargs):
     course = tmp[1]
 
     Pretty.trace = kwargs["trace"]
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     conn.paste = kwargs["paste"]
     conn.review = kwargs["review"]
     conn.submit_exercise(conn.get_exercise(int(course), int(exercise)), Pretty.print_submission)
@@ -96,7 +99,7 @@ def test_exercise(exercise, course, *args, **kwargs):
     course = tmp[1]
 
     Pretty.trace = kwargs["trace"]
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     conn.test_exercise(conn.get_exercise(int(course), int(exercise)), Pretty.print_local_test)
 
 def set_course(course):
@@ -161,7 +164,7 @@ def submission(submissionid, *args, **kwargs):
             return
 
     Pretty.trace = kwargs["trace"]
-    conn = connection.Connection(conf.server, conf.auth)
+    conn = connection.Connection(conf)
     while conn.check_submission_url("%ssubmissions/%d.json?api_version=7" % (conn.server, int(submissionid)), Pretty.print_submission) == "processing":
         time.sleep(1)
 
