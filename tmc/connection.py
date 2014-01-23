@@ -69,12 +69,16 @@ class Connection:
 
         return newcourse
 
-    def get_exercise(self, course_id, exercise_id):
-        course = self.get_course(course_id)
-        for i in course.exercises:
-            if i.id == exercise_id:
-                return i
-        v.log(-1, "Could not find exercise %d in course %d" % (exercise_id, course_id))
+    def get_exercise(self, exercise):
+        r = requests.get("%sexercises/%d.json" % (self.server, exercise),
+            headers=self.auth,
+            params={"api_version": 7})
+
+        data = self.extract_json(r)
+
+        
+
+        v.log(-1, "Could not find exercise %d" % exercise)
         return None
 
     def download_exercises(self, exercises):

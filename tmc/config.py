@@ -179,3 +179,25 @@ class Config:
             os.chdir(self.new_dir)
 
         return exercise_id
+
+    def select_course(self, courses):
+        inp = raw_input("Course number/name: ")
+        try:
+            inp = int(inp)
+        except ValueError:
+            pass
+
+        for i in courses:
+            if i.id == inp or i.name == inp:
+                self.default_course = i.id
+        if self.default_course != -1:
+            self.save()
+        else:
+            v.log(-1, "Could not find that course.")
+            inp = raw_input("Try selecting a course again [Y/n]: ")
+            if inp.upper() == "N":
+                exit(-1)
+            else:
+                self.select_course(courses)
+
+        
