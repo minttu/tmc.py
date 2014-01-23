@@ -40,6 +40,7 @@ class Config:
         except IOError:
             v.log(-1, "Could not save file \"%s\"" % self.filename)
             exit(-1)
+        os.chmod(self.filename, 0600)
 
     def load(self):
         v.log(1, "Loading configuration from \"%s\"" % self.filename)
