@@ -76,7 +76,12 @@ class Connection:
 
         data = self.extract_json(r)
 
-        
+        if not "error" in data:
+            course = Course(int(data["course_id"]), data["course_name"])
+            exercise = Exercise(course, int(data["exercise_id"]), data["exercise_name"])
+            exercise.setDownloaded()
+            exercise.setDeadline(data["deadline"], data["deadline"])
+            return exercise
 
         v.log(-1, "Could not find exercise %d" % exercise)
         return None

@@ -78,8 +78,7 @@ def submit_exercise(exercise, *args, **kwargs):
     conf = Config()
     conf.load()
 
-    tmp = resolve_exercise_and_course(conf, exercise)
-    exercise = tmp[0]
+    exercise = resolve_exercise(conf, exercise)
 
     Pretty.trace = kwargs["trace"]
     conn = connection.Connection(conf)
@@ -93,8 +92,7 @@ def test_exercise(exercise, *args, **kwargs):
     conf = Config()
     conf.load()
 
-    tmp = resolve_exercise_and_course(conf, exercise, course)
-    exercise = tmp[0]
+    exercise = resolve_exercise(conf, exercise)
 
     Pretty.trace = kwargs["trace"]
     conn = connection.Connection(conf)

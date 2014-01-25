@@ -18,7 +18,6 @@ real world usage
 ================
 
     tmc init
-    tmc set-course 18
     tmc download-exercises
     tmc set-exercise k2014-mooc/viikko1/Viikko1_001.Nimi
 
@@ -33,13 +32,13 @@ You don't need to provide IDs again if you use `set-exercise` and `set-course`.
 
     tmc init                                   # asks for server, username and password and saves them for future usage
     tmc list-courses                           # lists all courses
-    tmc list-exercises [ID]                    # lists all exercises from course ID
-    tmc download-exercises [ID]                # downloads all exercises from course ID
-    tmc update-exercises [ID]                  # updates all exercises without overriding user code
-    tmc submit-exercise [ExerciseID][CourseID] # submits a exercise for testing
-    tmc test-exercise [ExerciseID][CourseID]   # tests exercise locally
+    tmc list-exercises [CourseID]              # lists all exercises from course ID
+    tmc download-exercises [CourseID]          # downloads all exercises from course ID
+    tmc update-exercises [CourseID]            # updates all exercises without overriding user code
+    tmc submit-exercise [ExerciseID]           # submits a exercise for testing
+    tmc test-exercise [ExerciseID]             # tests exercise locally
 
-    tmc set-course [ID]                        # sets the default CourseID, so that you don't need to write it again
+    tmc set-course [CourseID]                  # sets the default CourseID, so that you don't need to write it again
     tmc unset-course                           # resets the default CourseID
 
     tmc set-exercise ID                        # sets the default ExerciseID
@@ -47,7 +46,7 @@ You don't need to provide IDs again if you use `set-exercise` and `set-course`.
     tmc next-exercise                          # goes to the next exercise
     tmc previous-exercise                      # goes to the previous exercise
 
-    tmc submission [ID]                        # get info from submission
+    tmc submission [SubmissionID]              # get info from submission
 
     tmc help [command]
 
