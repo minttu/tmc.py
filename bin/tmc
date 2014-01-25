@@ -24,7 +24,6 @@ def init():
     courses = conn.get_courses()
     Pretty.list_courses(conf.default_course, courses)
     conf.select_course(courses)
-    #v.log(0, "You can set your default course ID with \"tmc set-course ID\"")
 
 def list_courses():
     conf = Config()
@@ -32,6 +31,9 @@ def list_courses():
 
     conn = connection.Connection(conf)
     Pretty.list_courses(conf.default_course, conn.get_courses())
+
+def lc():
+    list_courses()
 
 @argh.decorators.arg("course", nargs="*", default="-1")
 def list_exercises(course):
@@ -42,6 +44,14 @@ def list_exercises(course):
 
     conn = connection.Connection(conf)
     Pretty.list_exercises(conf.default_exercise, conn.get_course(int(course)).exercises)
+
+@argh.decorators.arg("course", nargs="*", default="-1")
+def ls(course):
+    list_exercises(course)
+
+@argh.decorators.arg("course", nargs="*", default="-1")
+def le(course):
+    list_exercises(course)
 
 @argh.decorators.arg("course", nargs="*", default="-1")
 @argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
@@ -56,6 +66,12 @@ def download_exercises(course, *args, **kwargs):
     conn.force = kwargs["force"]
     conn.update = kwargs["update"]
     conn.download_exercises(conn.get_course(int(course)).exercises)
+
+@argh.decorators.arg("course", nargs="*", default="-1")
+@argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
+@argh.decorators.arg("-u", "--update", help="try to update all exercises", default=False)
+def dl(course, *args, **kwargs):
+    download_exercises(course, *args, **kwargs)
 
 @argh.decorators.arg("course", nargs="*", default="-1")
 @argh.decorators.arg("-f", "--force", help="force downloading exercises ontop of old exercises", default=False)
@@ -87,6 +103,20 @@ def submit_exercise(exercise, *args, **kwargs):
     conn.submit_exercise(conn.get_exercise(int(exercise)), Pretty.print_submission)
 
 @argh.decorators.arg("exercise", nargs="*", default="-1")
+@argh.decorators.arg("-p", "--paste", help="make submission a paste", default=False)
+@argh.decorators.arg("-r", "--review", help="request review", default=False)
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def submit(exercise, *args, **kwargs):
+    submit_exercise(exercise, *args, **kwargs)
+
+@argh.decorators.arg("exercise", nargs="*", default="-1")
+@argh.decorators.arg("-p", "--paste", help="make submission a paste", default=False)
+@argh.decorators.arg("-r", "--review", help="request review", default=False)
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def se(exercise, *args, **kwargs):
+    submit_exercise(exercise, *args, **kwargs)
+
+@argh.decorators.arg("exercise", nargs="*", default="-1")
 @argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
 def test_exercise(exercise, *args, **kwargs):
     conf = Config()
@@ -97,6 +127,16 @@ def test_exercise(exercise, *args, **kwargs):
     Pretty.trace = kwargs["trace"]
     conn = connection.Connection(conf)
     conn.test_exercise(conn.get_exercise(int(exercise)), Pretty.print_local_test)
+
+@argh.decorators.arg("exercise", nargs="*", default="-1")
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def test(exercise, *args, **kwargs):
+    test_exercise(exercise, *args, **kwargs)
+
+@argh.decorators.arg("exercise", nargs="*", default="-1")
+@argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
+def te(exercise, *args, **kwargs):
+    test_exercise(exercise, *args, **kwargs)
 
 def set_course(course):
     conf = Config()
@@ -136,10 +176,16 @@ def next_exercise():
     conf.load()
     conf.next_exercise()
 
+def next():
+    next_exercise()
+
 def previous_exercise():
     conf = Config()
     conf.load()
     conf.previous_exercise()
+
+def prev():
+    previous_exercise()
 
 @argh.decorators.arg("submissionid", nargs="*", default=-1, help="what submission to display, will use last submissions id if none is provided")
 @argh.decorators.arg("-t", "--trace", help="print strack trace if needed", default=False)
@@ -212,7 +258,15 @@ def resolve_course(conf, course):
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([init, list_courses, list_exercises, download_exercises, update_exercises, submit_exercise, test_exercise, set_course, unset_course, set_exercise, unset_exercise, next_exercise, previous_exercise, submission])
+    parser.add_commands([init,
+        list_courses, lc, list_exercises, ls, le,
+        download_exercises, dl, update_exercises,
+        submit_exercise, submit, se, test_exercise, test, te,
+        set_course, unset_course,
+        set_exercise, unset_exercise, 
+        next_exercise, next, previous_exercise, prev,
+        submission])
+
     parser.dispatch()
 
 if __name__ == '__main__':
