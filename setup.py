@@ -7,7 +7,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='tmc',
-    version='0.2.0',
+    version='0.2.1',
     description='TestMyCode client',
     author='Juhani Imberg',
     author_email='juhani@imberg.com',

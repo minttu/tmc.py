@@ -192,6 +192,9 @@ class Config:
                 self.default_course = i.id
         if self.default_course != -1:
             self.save()
+            inp = raw_input("Do you want to download all of the exercises from that course also [Y/n]: ")
+            if inp.upper() == "N":
+                exit(-1)
         else:
             v.log(-1, "Could not find that course.")
             inp = raw_input("Try selecting a course again [Y/n]: ")

@@ -18,7 +18,6 @@ real world usage
 ================
 
     tmc init
-    tmc dl
     tmc set-exercise k2014-mooc/viikko1/Viikko1_001.Nimi
 
     # untill you have completed the course

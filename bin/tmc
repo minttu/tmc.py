@@ -24,6 +24,7 @@ def init():
     courses = conn.get_courses()
     Pretty.list_courses(conf.default_course, courses)
     conf.select_course(courses)
+    conn.download_exercises(conn.get_course(int(conf.default_course)).exercises)
 
 def list_courses():
     conf = Config()
