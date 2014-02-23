@@ -1,31 +1,32 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from setuptools import setup
 import os
+import tmc
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='tmc',
-    version='0.2.1',
-    description='TestMyCode client',
-    author='Juhani Imberg',
-    author_email='juhani@imberg.com',
-    url='http://github.com/JuhaniImberg/tmc.py/',
-    license='MIT',
-    scripts=['bin/tmc'],
-    packages=['tmc'],
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Environment :: Console",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-    ],
-    install_requires=[
-        "requests >= 2.2.0",
-        "python-dateutil >= 2.2",
-        "pytz >= 2013.9",
-        "argh >= 0.23.3",
-        "argcomplete >= 0.6.9",
-    ],
-)
+      version=tmc.VERSION,
+      description='TestMyCode client',
+      author='Juhani Imberg',
+      author_email='juhani@imberg.com',
+      url='http://github.com/JuhaniImberg/tmc.py/',
+      license='MIT',
+      packages=['tmc'],
+      entry_points={'console_scripts': [
+                    'tmc = tmc.__main__:main'
+                    ]},
+      classifiers=[
+          "Development Status :: 3 - Alpha",
+          "Environment :: Console",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: MIT License",
+      ],
+      install_requires=[
+          "requests == 2.2.1",
+          "argh == 0.24.1"
+      ],
+      )

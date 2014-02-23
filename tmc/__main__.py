@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+import tmc
+import argh
+from argh.decorators import aliases
+import getpass
+import base64
+
+
+def resetdb():
+    tmc.db.reset()
+
+
+@aliases("up")
+def update(what):
+    what = what.upper()
+    if what == "COURSES":
+        for course in tmc.api.get_courses():
+            tmc.db.add_course(course)
+    elif what == "EXERCISES":
+        sel = tmc.db.selected_course()
+        if sel == None:
+            return
+        for exercise in tmc.api.get_exercises(sel["id"]):
+            tmc.db.add_exercise(exercise, sel)
+
+
+@aliases("dl")
+def download(what):
+    what = what.upper()
+    if what == "ALL":
+        pass
+
+
+@aliases("sel")
+def select(what):
+    what = what.upper()
+    if what == "COURSE":
+        og = tmc.db.selected_course()
+        start_index = 0
+        if og != None:
+            start_index = og["id"]
+        ret = tmc.Menu.launch(
+            "Select a course", tmc.db.get_courses(), start_index)
+        if ret != -1:
+            tmc.db.select_course(ret)
+            return True
+        else:
+            print("You can select the course with `tmc select course`")
+            return False
+    elif what == "EXERCISE":
+        og = tmc.db.selected_exercise()
+        start_index = 0
+        if og != None:
+            start_index = og["id"]
+        ret = tmc.Menu.launch(
+            "Select a exercise", tmc.db.get_exercises(), start_index)
+        if ret != -1:
+            tmc.db.select_exercise(ret)
+            return True
+
+
+def configure():
+    server = input("Server url [http://tmc.mooc.fi/mooc/]: ")
+    if len(server) == 0:
+        server = "http://tmc.mooc.fi/mooc/"
+    username = input("Username: ")
+    password = getpass.getpass("Password: ")
+    token = base64.b64encode(
+        bytes("{0}:{1}".format(username, password), 'utf-8')).decode("utf-8")
+    tmc.api.configure(server, token)
+    update("courses")
+    if select("course"):
+        update("exercises")
+        dl = input("Download exercises [Y/n]: ")
+        if dl.upper() == "Y" or len(dl) == 0:
+            download("all")
+        else:
+            print("You can download the exercises with `tmc download all`")
+
+
+def version():
+    print("tmc.py version {0}".format(tmc.VERSION))
+    print("Copyright 2014 Juhani Imberg")
+
+
+def main():
+    parser = argh.ArghParser()
+    parser.add_commands([select, update, resetdb, configure, version])
+    parser.dispatch()
+
+if __name__ == "__main__":
+    main()
