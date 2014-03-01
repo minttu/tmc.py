@@ -23,7 +23,8 @@ class DB:
         self.c.execute("""  CREATE TABLE IF NOT EXISTS courses (
                                 id          INTEGER PRIMARY KEY     NOT NULL,
                                 name        TEXT                    NOT NULL,
-                                selected    INTEGER                 DEFAULT 0
+                                selected    INTEGER                 DEFAULT 0,
+                                path        TEXT                    DEFAULT ""
                             )""")
 
         self.c.execute("""  CREATE TABLE IF NOT EXISTS exercises (
@@ -69,19 +70,28 @@ class DB:
         return self.c.fetchall()
 
     def select_course(self, id):
-        self.c.execute("UPDATE courses SET selected = 0")
-        self.c.execute("UPDATE courses SET selected = 1 WHERE id=?", (id,))
+        self.c.execute("UPDATE courses SET selected=0")
+        self.c.execute("UPDATE courses SET selected=1 WHERE id=?", (id,))
+        self.conn.commit()
+
+    def set_selected_path(self, path):
+        self.c.execute("UPDATE courses SET path=? WHERE selected=1", (path,))
         self.conn.commit()
 
     def selected_course(self):
-        self.c.execute("SELECT * FROM courses WHERE selected=1")
+        self.c.execute("SELECT * FROM courses WHERE selected = 1")
         return self.c.fetchone()
 
     # exercise stuff
 
     def add_exercise(self, exercise, course):
-        self.c.execute("""  INSERT OR IGNORE INTO exercises (id, name, course_id, attempted, completed)
-                            VALUES (?, ?, ?, ?, ?)""", (exercise["id"], exercise["name"], course["id"], exercise["attempted"], exercise["completed"],))
+        self.c.execute("""  INSERT OR IGNORE INTO exercises (
+                            id, name, course_id, attempted, completed)
+                            VALUES (?, ?, ?, ?, ?)""", (exercise["id"],
+                                                        exercise["name"],
+                                                        course["id"],
+                                                        exercise["attempted"],
+                                                        exercise["completed"],))
         self.conn.commit()
 
     def get_exercises(self):
@@ -89,10 +99,10 @@ class DB:
         return self.c.fetchall()
 
     def select_exercise(self, id):
-        self.c.execute("UPDATE exercises SET selected = 0")
-        self.c.execute("UPDATE exercises SET selected = 1 WHERE id=?", (id,))
+        self.c.execute("UPDATE exercises SET selected=0")
+        self.c.execute("UPDATE exercises SET selected=1 WHERE id=?", (id,))
         self.conn.commit()
 
     def selected_exercise(self):
-        self.c.execute("SELECT * FROM exercises WHERE selected=1")
+        self.c.execute("SELECT * FROM exercises WHERE selected = 1")
         return self.c.fetchone()

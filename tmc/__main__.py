@@ -5,6 +5,7 @@ import argh
 from argh.decorators import aliases
 import getpass
 import base64
+import os
 
 
 def resetdb():
@@ -12,12 +13,13 @@ def resetdb():
 
 
 @aliases("up")
+@tmc.Spinner.SpinnerDecorator("Updated.")
 def update(what):
     what = what.upper()
-    if what == "COURSES":
+    if what == "COURSES" or what == "C":
         for course in tmc.api.get_courses():
             tmc.db.add_course(course)
-    elif what == "EXERCISES":
+    elif what == "EXERCISES" or what == "E":
         sel = tmc.db.selected_course()
         if sel == None:
             return
@@ -26,6 +28,7 @@ def update(what):
 
 
 @aliases("dl")
+@tmc.Spinner.SpinnerDecorator()
 def download(what):
     what = what.upper()
     if what == "ALL":
@@ -66,12 +69,19 @@ def configure():
         server = "http://tmc.mooc.fi/mooc/"
     username = input("Username: ")
     password = getpass.getpass("Password: ")
+    # wow, such security
     token = base64.b64encode(
         bytes("{0}:{1}".format(username, password), 'utf-8')).decode("utf-8")
     tmc.api.configure(server, token)
     update("courses")
     if select("course"):
         update("exercises")
+        defpath = os.path.join(
+            os.path.expanduser("~"), "tmc", tmc.db.selected_course()["name"])
+        path = input("File download path [{0}]: ".format(defpath))
+        if len(path) == 0:
+            path = defpath
+        tmc.db.set_selected_path(path)
         dl = input("Download exercises [Y/n]: ")
         if dl.upper() == "Y" or len(dl) == 0:
             download("all")
@@ -86,7 +96,8 @@ def version():
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([select, update, resetdb, configure, version])
+    parser.add_commands(
+        [select, update, download, resetdb, configure, version])
     parser.dispatch()
 
 if __name__ == "__main__":
