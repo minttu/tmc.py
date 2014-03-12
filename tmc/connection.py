@@ -2,9 +2,9 @@
 
 # tmccli / connection.py
 # ======================
-# 
+#
 # Handles connections to the TMC server and checking for errors.
-# 
+#
 # Copyright © 2014 Juhani Imberg
 # Released under the MIT License, see LICENSE for details
 
@@ -23,8 +23,10 @@ import glob
 import xml.etree.ElementTree as ET
 from StringIO import StringIO
 
+
 class Connection:
     spinner = ['\\', '|', '/', '-']
+
     def __init__(self, conf):
         self.conf = conf
         self.server = conf.server
@@ -37,8 +39,8 @@ class Connection:
 
     def get_courses(self):
         r = requests.get("%scourses.json" % self.server,
-            headers=self.auth,
-            params={"api_version": 7})
+                         headers=self.auth,
+                         params={"api_version": 7})
 
         data = self.extract_json(r)
 
@@ -53,11 +55,11 @@ class Connection:
         else:
             id = course.id
         r = requests.get("%scourses/%d.json" % (self.server, id),
-            headers=self.auth,
-            params={"api_version": 7})
+                         headers=self.auth,
+                         params={"api_version": 7})
 
         data = self.extract_json(r)
-        
+
         newcourse = Course(int(data["course"]["id"]), data["course"]["name"])
         for i in data["course"]["exercises"]:
             tmp = Exercise(newcourse, int(i["id"]), i["name"])
@@ -71,14 +73,15 @@ class Connection:
 
     def get_exercise(self, exercise):
         r = requests.get("%sexercises/%d.json" % (self.server, exercise),
-            headers=self.auth,
-            params={"api_version": 7})
+                         headers=self.auth,
+                         params={"api_version": 7})
 
         data = self.extract_json(r)
 
         if not "error" in data:
             course = Course(int(data["course_id"]), data["course_name"])
-            exercise = Exercise(course, int(data["exercise_id"]), data["exercise_name"])
+            exercise = Exercise(
+                course, int(data["exercise_id"]), data["exercise_name"])
             exercise.setDownloaded()
             exercise.setDeadline(data["deadline"], data["deadline"])
             return exercise
@@ -102,8 +105,8 @@ class Connection:
 
     def download_exercise(self, exercise):
         dirname = os.path.join(exercise.course.name,
-            exercise.name_week,
-            exercise.name_name)
+                               exercise.name_week,
+                               exercise.name_name)
 
         tmpfile = StringIO()
 
@@ -118,18 +121,18 @@ class Connection:
             return
 
         r = requests.get("%sexercises/%d.zip" % (self.server, exercise.id),
-            stream=True,
-            headers=self.auth,
-            params={"api_version": 7})
-        
+                         stream=True,
+                         headers=self.auth,
+                         params={"api_version": 7})
+
         for block in r.iter_content(1024):
             if not block:
                 break
             tmpfile.write(block)
 
         dirname = os.path.join(exercise.course.name,
-            exercise.name_week,
-            exercise.name_name)
+                               exercise.name_week,
+                               exercise.name_name)
 
         if self.update == True:
             v.log(0, "Extracting/Updating \"%s\"" % dirname)
@@ -152,17 +155,24 @@ class Connection:
     # feels bad to place this here...
     def test_exercise(self, exercise, callback):
         if exercise.downloaded == False:
-            v.log(-1, """Can't test something you have not even downloaded. 
+            v.log(-1, """Can't test something you have not even downloaded.
                 You might be in a wrong directory.""")
             exit(-1)
         v.log(0, "Testing %s locally. This will take a while." % exercise.name)
 
         # ant
 
-        s = subprocess.Popen(["ant", "test", "-S"], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"), cwd=os.path.join(os.getcwd(), exercise.course.name, exercise.name_week, exercise.name_name))
+        try:
+            s = subprocess.Popen(["ant", "test", "-S"], stdout=open(os.devnull, "wb"), stderr=open(
+                os.devnull, "wb"), cwd=os.path.join(os.getcwd(), exercise.course.name, exercise.name_week, exercise.name_name))
+        except OSError:
+            v.log(
+                -1, "You don't seem to have ant installed. It's needed for testing.")
+            exit(-1)
         s.communicate()
 
-        files = glob.glob("%s*.xml" % (os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "build", "test", "results") + os.sep))
+        files = glob.glob("%s*.xml" %
+                          (os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "build", "test", "results") + os.sep))
 
         for filename in files:
             try:
@@ -186,19 +196,20 @@ class Connection:
 
     def submit_exercise(self, exercise, callback):
         if exercise.downloaded == False:
-            v.log(-1, """Can't submit something you have not even downloaded. 
+            v.log(-1, """Can't submit something you have not even downloaded.
                 You might be in a wrong directory.""")
             exit(-1)
         v.log(0, "Submitting %s. This will take a while." % exercise.name)
 
-
         v.log(1, "Zipping up")
         tmpfile = StringIO()
-        dirname = os.path.join(exercise.course.name, exercise.name_week, exercise.name_name, "src")
+        dirname = os.path.join(
+            exercise.course.name, exercise.name_week, exercise.name_name, "src")
         zipfp = zipfile.ZipFile(tmpfile, "w")
         for root, dirs, files in os.walk(dirname):
             for file in files:
-                zipfp.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(dirname, '..')), zipfile.ZIP_DEFLATED)
+                zipfp.write(os.path.join(root, file), os.path.relpath(
+                    os.path.join(root, file), os.path.join(dirname, '..')), zipfile.ZIP_DEFLATED)
         zipfp.close()
 
         params = {}
@@ -209,19 +220,20 @@ class Connection:
 
         r = requests.post("%s/exercises/%d/submissions.json" % (
             self.server, exercise.id),
-            headers = self.auth,
-            data = {"api_version": 7, "commit": "Submit"},
-            params = params,
-            files = {"submission[file]": ('submission.zip', tmpfile.getvalue())})
+            headers=self.auth,
+            data={"api_version": 7, "commit": "Submit"},
+            params=params,
+            files={"submission[file]": ('submission.zip', tmpfile.getvalue())})
 
         data = self.extract_json(r)
 
         if "submission_url" in data:
-            v.log(1, "Successfully submitted %s.\nPlease wait." % exercise.name)
+            v.log(1, "Successfully submitted %s.\nPlease wait." %
+                  exercise.name)
             v.log(1, "URL: %s" % data["submission_url"])
         else:
             v.log(-1, "Didn't get a submission url. That's bad.")
-        
+
         while self.check_submission_url(data["submission_url"], callback) == "processing":
             time.sleep(1)
 
@@ -231,7 +243,8 @@ class Connection:
         self.spin()
 
         if data["status"] != "processing":
-            data["id"] = submission_url.split("submissions/")[1].split(".json")[0]
+            data["id"] = submission_url.split(
+                "submissions/")[1].split(".json")[0]
             Config.last_submission(int(data["id"]))
             self.stopspin()
             callback(data)
@@ -245,7 +258,7 @@ class Connection:
     def spin(self):
         if self.spinindex != 0:
             sys.stdout.write("\b")
-        sys.stdout.write(Connection.spinner[self.spinindex%4])
+        sys.stdout.write(Connection.spinner[self.spinindex % 4])
         sys.stdout.flush()
         self.spinindex += 1
 
