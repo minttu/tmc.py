@@ -4,7 +4,8 @@ import os
 
 class DB:
 
-    """Our configuration manager. ToDo: make the SQL a bit nicer. please (: """
+    """Our configuration manager. ToDo: make the SQL a bit nicer. please (:
+                                  ToDo: less copypastarino """
 
     def __init__(self):
         self.conn = sqlite3.connect(

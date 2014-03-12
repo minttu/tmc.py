@@ -4,6 +4,8 @@ import tmc
 
 class API:
 
+    """Handles communication with TMC server."""
+
     def __init__(self):
         self.server_url = ""
         self.auth_header = ""
