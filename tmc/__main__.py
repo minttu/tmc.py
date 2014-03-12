@@ -63,7 +63,30 @@ def select(what):
             return True
 
 
+@aliases("ls")
+def listall():
+    for exercise in tmc.db.get_exercises():
+        # ToDo: use a pager
+        print("{0} │ {1} │ {2} │ {3}".format(exercise["id"],
+                                             unic(exercise["downloaded"]),
+                                             unic(exercise["completed"]),
+                                             exercise["name"]))
+
+
+def unic(val):
+    if val == 1:
+        return "✔"
+    else:
+        return "✘"
+
+
+@aliases("conf")
 def configure():
+    if tmc.db.hasconf():
+        sure = input("Override old configuration [y/N]: ")
+        if sure.upper() != "Y":
+            return
+    tmc.db.reset()
     server = input("Server url [http://tmc.mooc.fi/mooc/]: ")
     if len(server) == 0:
         server = "http://tmc.mooc.fi/mooc/"
@@ -97,7 +120,7 @@ def version():
 def main():
     parser = argh.ArghParser()
     parser.add_commands(
-        [select, update, download, resetdb, configure, version])
+        [select, update, download, resetdb, configure, version, listall])
     parser.dispatch()
 
 if __name__ == "__main__":

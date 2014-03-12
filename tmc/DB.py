@@ -4,7 +4,7 @@ import os
 
 class DB:
 
-    """Our configuration manager."""
+    """Our configuration manager. ToDo: make the SQL a bit nicer. please (: """
 
     def __init__(self):
         self.conn = sqlite3.connect(
@@ -18,6 +18,12 @@ class DB:
         self.c.execute("DROP TABLE IF EXISTS exercises")
         self.c.execute("DROP TABLE IF EXISTS config")
         self.create_tables()
+
+    def hasconf(self):
+        self.c.execute("SELECT 1 FROM config")
+        if self.c.fetchone() is not None:
+            return True
+        return False
 
     def create_tables(self):
         self.c.execute("""  CREATE TABLE IF NOT EXISTS courses (
@@ -95,8 +101,14 @@ class DB:
         self.conn.commit()
 
     def get_exercises(self):
-        self.c.execute("SELECT * FROM exercises")
-        return self.c.fetchall()
+        try:
+            course = self.selected_course()["id"]
+        except TypeError:
+            raise Exception("You need to select a course first!")
+        self.c.execute("SELECT * FROM exercises WHERE course_id=?", (course,))
+        results = self.c.fetchall()
+        # ToDo: This won't play nice with weeks >= 10
+        return sorted(results, key=lambda result: result["name"])
 
     def select_exercise(self, id):
         self.c.execute("UPDATE exercises SET selected=0")
