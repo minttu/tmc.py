@@ -3,7 +3,6 @@ import tmc
 
 
 class API:
-
     """Handles communication with TMC server."""
 
     def __init__(self):
@@ -64,3 +63,11 @@ class API:
 
     def get_submission(self, id):
         return self.make_request("submissions/{0}.json".format(id))
+
+    def get_zip_stream(self, id):
+        if not self.configured:
+            raise Exception("API needs to be configured before use!")
+        return requests.get("{0}exercises/{1}.zip".format(self.server_url, id),
+                            stream=True,
+                            headers=self.auth_header,
+                            params={"api_version": self.api_version})

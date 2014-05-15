@@ -2,14 +2,13 @@
 
 from setuptools import setup
 import os
-import tmc
-
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 setup(name='tmc',
-      version=tmc.VERSION,
+      version='0.3.0',
       description='TestMyCode client',
       author='Juhani Imberg',
       author_email='juhani@imberg.com',
@@ -17,8 +16,9 @@ setup(name='tmc',
       license='MIT',
       packages=['tmc'],
       entry_points={'console_scripts': [
-                    'tmc = tmc.__main__:main'
-                    ]},
+          'tmc = tmc.__main__:main',
+          'tmc3 = tmc.__main__:main'
+      ]},
       classifiers=[
           "Development Status :: 3 - Alpha",
           "Environment :: Console",
@@ -29,4 +29,4 @@ setup(name='tmc',
           "requests == 2.2.1",
           "argh == 0.24.1"
       ],
-      )
+)

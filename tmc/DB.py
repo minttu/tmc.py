@@ -3,7 +3,6 @@ import os
 
 
 class DB:
-
     """Our configuration manager. ToDo: make the SQL a bit nicer. please (:
                                   ToDo: less copypastarino """
 
@@ -76,6 +75,14 @@ class DB:
         self.c.execute("SELECT * FROM courses")
         return self.c.fetchall()
 
+    def get_course(self, id):
+        self.c.execute("SELECT * FROM courses WHERE id=?", (id,))
+        return self.c.fetchone()
+
+    def get_exercise(self, id):
+        self.c.execute("SELECT * FROM exercises WHERE id=?", (id,))
+        return self.c.fetchone()
+
     def select_course(self, id):
         self.c.execute("UPDATE courses SET selected=0")
         self.c.execute("UPDATE courses SET selected=1 WHERE id=?", (id,))
@@ -119,3 +126,7 @@ class DB:
     def selected_exercise(self):
         self.c.execute("SELECT * FROM exercises WHERE selected = 1")
         return self.c.fetchone()
+
+    def set_downloaded(self, id):
+        self.c.execute("UPDATE exercises SET downloaded=1 WHERE id=?", (id,))
+        self.conn.commit()

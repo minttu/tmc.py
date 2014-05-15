@@ -5,7 +5,6 @@ ret = -1
 
 
 class Menu:
-
     """ A ncurses menu for selecting something. """
 
     def __init__(self, screen, title, items, start):
