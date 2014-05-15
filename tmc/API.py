@@ -40,11 +40,14 @@ class API:
                            params={"api_version": self.api_version})
         if req is None:
             raise Exception("Request is none!")
+        return self.get_json(req)
+
+    def get_json(self, req):
         json = None
         try:
             json = req.json()
         except ValueError as e:
-            if "500" in request.text:
+            if "500" in req.text:
                 raise Exception("TMC Server encountered a internal error.")
             else:
                 raise Exception("TMC Server did not send valid JSON.")
@@ -71,3 +74,16 @@ class API:
                             stream=True,
                             headers=self.auth_header,
                             params={"api_version": self.api_version})
+
+    def send_zip(self, id, file):
+        return self.get_json(requests.post("{0}exercises/{1}/submissions.json".format(self.server_url, id),
+                                           headers=self.auth_header,
+                                           data={"api_version": self.api_version, "commit": "Submit"},
+                                           params={},
+                                           files={"submission[file]": ('submission.zip', file)}))
+
+    def get_submission(self, id):
+        req = self.make_request("submissions/{0}.json".format(id))
+        if req["status"] == "processing":
+            return None
+        return req

@@ -56,6 +56,12 @@ def test(what=None):
         if not tmc.files.test(int(what)):
             exit(-1)
 
+@aliases("su")
+@needs_a_course
+def submit(what=None):
+    if what is not None:
+        tmc.files.submit(int(what))
+
 @aliases("sel")
 def select(what):
     what = what.upper()
@@ -152,7 +158,7 @@ def version():
 def main():
     parser = argh.ArghParser()
     parser.add_commands(
-        [select, update, updatecourses, download, test, resetdb, configure, version, listall])
+        [select, update, updatecourses, download, test, submit, resetdb, configure, version, listall])
     parser.dispatch()
 
 
