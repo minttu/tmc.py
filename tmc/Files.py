@@ -18,7 +18,9 @@ class Files:
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
         outpath = os.path.join(course["path"])
-        print("{0}exercises/{1}.zip -> {2}".format(tmc.api.server_url, exercise["id"], outpath))
+        print("{0}exercises/{1}.zip -> {2}".format(
+            tmc.api.server_url, exercise["id"], outpath))
+
         @tmc.Spinner.SpinnerDecorator("Done!")
         def inner(id):
             req = tmc.api.get_zip_stream(id)
@@ -37,7 +39,8 @@ class Files:
         stderr = StringIO()
         out = None
         try:
-            ret = subprocess.Popen(["ant", "clean", "test"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=path)
+            ret = subprocess.Popen(
+                ["ant", "clean", "test"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=path)
             out = ret.communicate()[0].decode('utf-8')
             retcode = ret.returncode
         except OSError as e:
@@ -45,7 +48,8 @@ class Files:
                 raise Exception("You don't seem to have ant installed.")
         if retcode != 0:
             sys.stderr.write("\033[31m")
-            tests = glob(os.path.join(path, "build", "test", "results", "*.xml"))
+            tests = glob(
+                os.path.join(path, "build", "test", "results", "*.xml"))
             if len(tests) > 0:
                 for test in tests:
                     tree = ET.parse(test)
@@ -65,7 +69,8 @@ class Files:
     def test(self, id):
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
-        outpath = os.path.join(course["path"], "/".join(exercise["name"].split("-")))
+        outpath = os.path.join(
+            course["path"], "/".join(exercise["name"].split("-")))
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
@@ -77,12 +82,15 @@ class Files:
     def submit(self, id):
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
-        outpath = os.path.join(course["path"], "/".join(exercise["name"].split("-")))
-        print("{0} -> {1}exercises/{2}.json".format(outpath, tmc.api.server_url, id))
+        outpath = os.path.join(
+            course["path"], "/".join(exercise["name"].split("-")))
+        print("{0} -> {1}exercises/{2}.json".format(
+            outpath, tmc.api.server_url, id))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
         tmc.db.set_downloaded(id)
+
         @tmc.Spinner.SpinnerDecorator("Sent.")
         def inner():
             tmpfile = BytesIO()
@@ -90,7 +98,10 @@ class Files:
             for root, dirs, files in os.walk(outpath):
                 for file in files:
                     zipfp.write(os.path.join(root, file),
-                                os.path.relpath(os.path.join(root, file), os.path.join(outpath, '..')),
+                                os.path.relpath(
+                                    os.path.join(
+                                        root, file), os.path.join(
+                                            outpath, '..')),
                                 zipfile.ZIP_DEFLATED)
             zipfp.close()
             try:
@@ -108,7 +119,8 @@ class Files:
             def inner():
                 while True:
                     try:
-                        data = tmc.api.get_submission(int(resp["submission_url"].split(".json")[0].split("submissions/")[1]))
+                        data = tmc.api.get_submission(
+                            int(resp["submission_url"].split(".json")[0].split("submissions/")[1]))
                     except Exception as e:
                         return e
                     if data:
@@ -122,8 +134,11 @@ class Files:
                 sys.stderr.write("\033[31m")
                 for testcase in data["test_cases"]:
                     if not testcase["successful"]:
-                        sys.stderr.write("{0}:\n  {1}\n".format(testcase["name"], testcase["message"]))
-                sys.stderr.write("\033[33mFor better details run `tmc test " + str(id) + "`\033[0m\n")
+                        sys.stderr.write("{0}:\n  {1}\n".format(
+                            testcase["name"], testcase["message"]))
+                sys.stderr.write(
+                    "\033[33mFor better details run `tmc test " + str(id) + "`\033[0m\n")
                 exit(-1)
             elif data["status"] == "ok":
-                print("\033[32mPoints [{0}]\033[0m".format(", ".join(data["points"])))
+                print("\033[32mPoints [{0}]\033[0m".format(
+                    ", ".join(data["points"])))

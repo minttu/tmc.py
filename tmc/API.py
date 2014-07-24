@@ -3,13 +3,19 @@ import tmc
 
 
 class API:
+
     """Handles communication with TMC server."""
 
-    def __init__(self):
+    def __init__(self, version):
         self.server_url = ""
         self.auth_header = ""
         self.configured = False
         self.api_version = 7
+        self.params = {
+            "api_version": self.api_version,
+            "client": "tmc.py",
+            "client_version": version
+        }
 
         self.db_configure()
 
@@ -37,7 +43,7 @@ class API:
             raise Exception("API needs to be configured before use!")
         req = requests.get("{0}{1}".format(self.server_url, slug),
                            headers=self.auth_header,
-                           params={"api_version": self.api_version})
+                           params=self.params)
         if req is None:
             raise Exception("Request is none!")
         return self.get_json(req)
@@ -73,14 +79,17 @@ class API:
         return requests.get("{0}exercises/{1}.zip".format(self.server_url, id),
                             stream=True,
                             headers=self.auth_header,
-                            params={"api_version": self.api_version})
+                            params=self.params)
 
     def send_zip(self, id, file):
-        return self.get_json(requests.post("{0}exercises/{1}/submissions.json".format(self.server_url, id),
-                                           headers=self.auth_header,
-                                           data={"api_version": self.api_version, "commit": "Submit"},
-                                           params={},
-                                           files={"submission[file]": ('submission.zip', file)}))
+        return self.get_json(
+            requests.post(
+                "{0}exercises/{1}/submissions.json".format(
+                    self.server_url, id),
+                headers=self.auth_header,
+                data={"api_version": self.api_version, "commit": "Submit"},
+                params=self.params,
+                files={"submission[file]": ('submission.zip', file)}))
 
     def get_submission(self, id):
         req = self.make_request("submissions/{0}.json".format(id))
