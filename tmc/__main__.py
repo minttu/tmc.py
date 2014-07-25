@@ -1,77 +1,84 @@
 #!/usr/bin/env python3
 
-import tmc
 import argh
-from argh.decorators import aliases, arg
+from argh.decorators import aliases, arg, wrap_errors
 import getpass
 import base64
 import os
 import sys
 from functools import wraps
 from subprocess import Popen, DEVNULL
+from tmc.errors import *
+from tmc.prompt import prompt_yn
+from tmc.spinner import SpinnerDecorator
+from tmc import db, api, files, menu
 
 
 def needs_a_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        if tmc.db.selected_course() is None:
-            raise Exception("You need to select a course first!")
+        if db.selected_course() is None:
+            raise NoCourseSelected()
         return func(*args, **kwargs)
     return inner
 
 
 @aliases("reset")
+@wrap_errors([TMCError])
 def resetdb():
-    if tmc.Prompt.prompt_yn("Reset database", False):
-        tmc.db.reset()
+    if prompt_yn("Reset database", False):
+        db.reset()
 
 
 @aliases("up")
-@needs_a_course
-def update():
-    @tmc.Spinner.SpinnerDecorator()
-    def update_exercise():
-        sel = tmc.db.selected_course()
-        for exercise in tmc.api.get_exercises(sel["id"]):
-            tmc.db.add_exercise(exercise, sel)
-    update_exercise()
-    print("Done.")
+@wrap_errors([TMCError])
+@arg("-c", "--course", action="store_true", help="Update courses instead.")
+def update(course=False):
+    if course:
+        @SpinnerDecorator("Done.")
+        def update_course():
+            for course in api.get_courses():
+                db.add_course(course)
+        update_course()
+    else:
+        if not db.selected_course():
+            raise NoCourseSelected()
 
-
-@aliases("upc")
-def updatecourses():
-    @tmc.Spinner.SpinnerDecorator("Done.")
-    def update_course():
-        for course in tmc.api.get_courses():
-            tmc.db.add_course(course)
-    update_course()
+        @SpinnerDecorator()
+        def update_exercise():
+            sel = db.selected_course()
+            for exercise in api.get_exercises(sel["id"]):
+                db.add_exercise(exercise, sel)
+        update_exercise()
+        print("Done.")
 
 
 @arg("-f", "--force", default=False,
      action="store_true", help="Should the download be forced.")
 @aliases("dl")
 @needs_a_course
+@wrap_errors([TMCError])
 def download(what="all", force=False):
     what = what.upper()
     if what == "ALL":
-        for exercise in tmc.db.get_exercises():
-            tmc.files.download_file(exercise["id"], force=force)
+        for exercise in db.get_exercises():
+            files.download_file(exercise["id"], force=force)
     else:
-        tmc.files.download_file(int(what), force=force)
+        files.download_file(int(what), force=force)
 
 
 @aliases("te")
 @needs_a_course
+@wrap_errors([TMCError])
 def test(what=None):
     if what is not None:
-        if not tmc.files.test(int(what)):
+        if not files.test(int(what)):
             exit(-1)
     else:
-        sel = tmc.db.selected_exercise()
+        sel = db.selected_exercise()
         if not sel:
-            print("Select a exercise with `tmc select exercise`")
-            exit(-1)
-        tmc.files.test(sel["id"])
+            raise NoExerciseSelected()
+        files.test(sel["id"])
 
 
 @arg("-p", "--pastebin", default=False, action="store_true",
@@ -80,54 +87,54 @@ def test(what=None):
      help="Request a review for this submission.")
 @aliases("su")
 @needs_a_course
+@wrap_errors([TMCError])
 def submit(what=None, pastebin=False, review=False):
     if what is not None:
-        tmc.files.submit(int(what), pastebin=pastebin, request_review=review)
+        files.submit(int(what), pastebin=pastebin, request_review=review)
     else:
-        sel = tmc.db.selected_exercise()
+        sel = db.selected_exercise()
         if not sel:
-            print("Select a exercise with `tmc select exercise`")
-            exit(-1)
-        tmc.files.submit(sel["id"], pastebin=pastebin, request_review=review)
+            raise NoExerciseSelected()
+        files.submit(sel["id"], pastebin=pastebin, request_review=review)
 
 
 @aliases("sel")
-def select(what="e"):
-    what = what.upper()
-    if what == "COURSE" or what == "C":
-        og = tmc.db.selected_course()
+@wrap_errors([TMCError])
+@arg("-c", "--course", action="store_true", help="Select a course instead.")
+def select(course=False):
+    if course:
+        og = db.selected_course()
         start_index = 0
         if og is not None:
             start_index = og["id"]
-        ret = tmc.Menu.launch(
-            "Select a course", tmc.db.get_courses(), start_index)
+        ret = menu.launch("Select a course", db.get_courses(), start_index)
         if ret != -1:
-            tmc.db.select_course(ret)
+            db.select_course(ret)
             update()
-            if tmc.db.selected_course()["path"] == "":
+            if db.selected_course()["path"] == "":
                 selpath()
             next()
             return
         else:
-            print("You can select the course with `tmc select course`")
+            print("You can select the course with `tmc select --course`")
             return
-    elif what == "EXERCISE" or what == "E":
-        og = tmc.db.selected_exercise()
+    else:
+        og = db.selected_exercise()
         start_index = 0
         if og is not None:
             start_index = og["id"]
-        ret = tmc.Menu.launch(
-            "Select a exercise", tmc.db.get_exercises(), start_index)
+        ret = menu.launch("Select a exercise", db.get_exercises(), start_index)
         if ret != -1:
-            tmc.db.select_exercise(ret)
+            db.select_exercise(ret)
             print("Selected {}: {}".format(
-                ret, tmc.db.selected_exercise()["name"]))
+                ret, db.selected_exercise()["name"]))
 
 
 @needs_a_course
+@wrap_errors([TMCError])
 def next():
-    sel = tmc.db.selected_exercise()
-    exercises = tmc.db.get_exercises()
+    sel = db.selected_exercise()
+    exercises = db.get_exercises()
     next = 0
     if not sel:
         next = exercises[0]["id"]
@@ -139,14 +146,15 @@ def next():
             elif this:
                 next = exercise["id"]
                 break
-    tmc.db.select_exercise(next)
-    print("Selected {}: {}".format(next, tmc.db.selected_exercise()["name"]))
+    db.select_exercise(next)
+    print("Selected {}: {}".format(next, db.selected_exercise()["name"]))
 
 
 @aliases("ls")
+@wrap_errors([TMCError])
 @needs_a_course
 def listall():
-    exercises = tmc.db.get_exercises()
+    exercises = db.get_exercises()
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
         (len(str(exercises[0]["id"])) - 1) * " ",
         "S", "D", "C", "Name"
@@ -170,13 +178,14 @@ def btc(val):
 
 @needs_a_course
 @arg('command', help='The command')
+@wrap_errors([TMCError])
 def run(command):
     """
     Spawns a process with `command path-of-exercise`
     """
-    exercise = tmc.db.selected_exercise()
+    exercise = db.selected_exercise()
     if exercise:
-        course = tmc.db.selected_course()
+        course = db.selected_course()
         p = os.path.join(course["path"], "/".join(exercise["name"].split("-")))
         Popen(['nohup', command, p], stdout=DEVNULL, stderr=DEVNULL)
 
@@ -184,14 +193,14 @@ def run(command):
 @aliases("init")
 @aliases("conf")
 def configure():
-    if tmc.db.hasconf():
+    if db.hasconf():
         sure = input("Override old configuration [y/N]: ")
         if sure.upper() != "Y":
             return
-    tmc.db.reset()
-    server = input("Server url [http://tmc.mooc.fi/mooc/]: ")
+    db.reset()
+    server = input("Server url [https://tmc.mooc.fi/mooc/]: ")
     if len(server) == 0:
-        server = "http://tmc.mooc.fi/mooc/"
+        server = "https://tmc.mooc.fi/mooc/"
     while(True):
         username = input("Username: ")
         password = getpass.getpass("Password: ")
@@ -199,25 +208,25 @@ def configure():
         token = base64.b64encode(bytes("{0}:{1}".format(username, password),
                                        'utf-8')).decode("utf-8")
         try:
-            tmc.api.configure(server, token)
+            api.configure(server, token)
         except Exception as e:  # ToDo: Better exception
             print(e)
-            if tmc.Prompt.prompt_yn("Retry authentication", True):
+            if prompt_yn("Retry authentication", True):
                 continue
             exit()
         break
-    updatecourses()
+    update(course=True)
     select("course")
 
 
 @needs_a_course
 def selpath():
     defpath = os.path.join(
-        os.path.expanduser("~"), "tmc", tmc.db.selected_course()["name"])
+        os.path.expanduser("~"), "tmc", db.selected_course()["name"])
     path = input("File download path [{0}]: ".format(defpath))
     if len(path) == 0:
         path = defpath
-    tmc.db.set_selected_path(path)
+    db.set_selected_path(path)
     dl = input("Download exercises [Y/n]: ")
     if dl.upper() == "Y" or len(dl) == 0:
         download("all")
@@ -232,8 +241,8 @@ def version():
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([select, update, updatecourses, download, test, submit,
-                         next, resetdb, configure, version, listall, run])
+    parser.add_commands([select, update, download, test, submit, next, resetdb,
+                         configure, version, listall, run])
     parser.dispatch()
 
 

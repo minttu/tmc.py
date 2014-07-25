@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from tmc.errors import *
 
 
 class DB:
@@ -113,7 +114,7 @@ class DB:
         try:
             course = self.selected_course()["id"]
         except TypeError:
-            raise Exception("You need to select a course first!")
+            raise NoCourseSelected()
         self.c.execute("SELECT * FROM exercises WHERE course_id=?", (course,))
         results = self.c.fetchall()
         # ToDo: This won't play nice with weeks >= 10

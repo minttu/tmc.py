@@ -36,17 +36,13 @@ usage
 
 Set the server, user credentials and selected course.
 
-### tmc select [course|exercise]
+### tmc select [--course]
 
-Select a course or exercise. Defaults to exercise.
+Selects a exercise. If `--course` is given selects a course instead.
 
-### tmc update
+### tmc update [--course]
 
-Update the list of exercises.
-
-### tmc updatecourses
-
-Update the list of courses.
+Update the list of exercises. If `--course` is given updates courses instead.
 
 ### tmc download [all|id]
 

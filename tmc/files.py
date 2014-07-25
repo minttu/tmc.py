@@ -8,27 +8,32 @@ import subprocess
 import xml.etree.ElementTree as ET
 import time
 
+from tmc.spinner import SpinnerDecorator
+
 
 class Files:
 
-    def __init__(self):
-        pass
+    def __init__(self, db, api):
+        self.db = db
+        self.api = api
 
     def download_file(self, id, force=False):
-        exercise = tmc.db.get_exercise(id)
-        course = tmc.db.get_course(exercise["course_id"])
+        exercise = self.db.get_exercise(id)
+        course = self.db.get_course(exercise["course_id"])
         outpath = os.path.join(course["path"])
         realoutpath = os.path.join(course["path"],
                                    "/".join(exercise["name"].split("-")))
-        print("{0}exercises/{1}.zip -> {2}".format(
-            tmc.api.server_url, exercise["id"], realoutpath))
+        print("{0}exercises/{1}.zip -> {2}".format(self.api.server_url,
+                                                   exercise["id"],
+                                                   realoutpath))
         if not force and os.path.isdir(realoutpath):
             print("Already downloaded, skipping.")
+            self.db.set_downloaded(id)
             return
 
-        @tmc.Spinner.SpinnerDecorator("Done!")
+        @SpinnerDecorator("Done!")
         def inner(id):
-            req = tmc.api.get_zip_stream(id)
+            req = self.api.get_zip_stream(id)
             tmpfile = BytesIO()
             for block in req.iter_content(1024):
                 if not block:
@@ -36,7 +41,7 @@ class Files:
                 tmpfile.write(block)
             zipfp = zipfile.ZipFile(tmpfile)
             zipfp.extractall(outpath)
-            tmc.db.set_downloaded(id)
+            self.db.set_downloaded(id)
         inner(id)
 
     def test_ant(self, path):
@@ -74,30 +79,30 @@ class Files:
         return True
 
     def test(self, id):
-        exercise = tmc.db.get_exercise(id)
-        course = tmc.db.get_course(exercise["course_id"])
+        exercise = self.db.get_exercise(id)
+        course = self.db.get_course(exercise["course_id"])
         outpath = os.path.join(course["path"],
                                "/".join(exercise["name"].split("-")))
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
-        tmc.db.set_downloaded(id)
+        self.db.set_downloaded(id)
         # testing for what type of project this is
         if os.path.isfile(os.path.join(outpath, "build.xml")):
             return self.test_ant(outpath)
         print("Unknown project type")
 
     def submit(self, id, request_review=False, pastebin=False):
-        exercise = tmc.db.get_exercise(id)
-        course = tmc.db.get_course(exercise["course_id"])
+        exercise = self.db.get_exercise(id)
+        course = self.db.get_course(exercise["course_id"])
         outpath = os.path.join(
             course["path"], "/".join(exercise["name"].split("-")))
-        print("{0} -> {1}exercises/{2}.json".format(
-            outpath, tmc.api.server_url, id))
+        print("{0} -> {1}exercises/{2}.json".format(outpath,
+                                                    self.api.server_url, id))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
-        tmc.db.set_downloaded(id)
+        self.db.set_downloaded(id)
 
         params = {}
         if request_review:
@@ -105,7 +110,7 @@ class Files:
         if pastebin:
             params["paste"] = "wolololo"
 
-        @tmc.Spinner.SpinnerDecorator("Sent.")
+        @SpinnerDecorator("Sent.")
         def inner():
             tmpfile = BytesIO()
             zipfp = zipfile.ZipFile(tmpfile, "w")
@@ -119,7 +124,7 @@ class Files:
                                 zipfile.ZIP_DEFLATED)
             zipfp.close()
             try:
-                data = tmc.api.send_zip(id, tmpfile.getvalue(), params)
+                data = self.api.send_zip(id, tmpfile.getvalue(), params)
             except Exception as e:
                 return e
             if data:
@@ -129,11 +134,11 @@ class Files:
             sys.stderr.write("\033[31m{0}\033[0m\n".format(resp))
             exit(-1)
         if "submission_url" in resp:
-            @tmc.Spinner.SpinnerDecorator("Results:")
+            @SpinnerDecorator("Results:")
             def inner():
                 while True:
                     try:
-                        data = tmc.api.get_submission(
+                        data = self.api.get_submission(
                             int(resp["submission_url"].split(".json")[0].split("submissions/")[1]))
                     except Exception as e:
                         return e
