@@ -28,7 +28,7 @@ setup(name='tmc',
       ],
       install_requires=[
           "requests == 2.2.1",
-          "argh == 0.24.1",
+          "argh == 0.25.0",
           "peewee == 2.2.5"
       ],
       )

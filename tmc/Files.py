@@ -14,7 +14,7 @@ class Files:
     def __init__(self):
         pass
 
-    def download_file(self, id):
+    def download_file(self, id, force=False):
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
         outpath = os.path.join(course["path"])
@@ -22,7 +22,7 @@ class Files:
                                    "/".join(exercise["name"].split("-")))
         print("{0}exercises/{1}.zip -> {2}".format(
             tmc.api.server_url, exercise["id"], realoutpath))
-        if os.path.isdir(realoutpath):
+        if not force and os.path.isdir(realoutpath):
             print("Already downloaded, skipping.")
             return
 
@@ -44,8 +44,10 @@ class Files:
         stderr = StringIO()
         out = None
         try:
-            ret = subprocess.Popen(
-                ["ant", "clean", "test"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=path)
+            ret = subprocess.Popen(["ant", "clean", "test"],
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   cwd=path)
             out = ret.communicate()[0].decode('utf-8')
             retcode = ret.returncode
         except OSError as e:

@@ -2,12 +2,13 @@
 
 import tmc
 import argh
-from argh.decorators import aliases
+from argh.decorators import aliases, arg
 import getpass
 import base64
 import os
 import sys
 from functools import wraps
+from subprocess import Popen, DEVNULL
 
 
 def needs_a_course(func):
@@ -46,15 +47,17 @@ def updatecourses():
     update_course()
 
 
+@arg("-f", "--force", default=False,
+     action="store_true", help="Should the download be forced.")
 @aliases("dl")
 @needs_a_course
-def download(what="all"):
+def download(what="all", force=False):
     what = what.upper()
     if what == "ALL":
         for exercise in tmc.db.get_exercises():
-            tmc.files.download_file(exercise["id"])
+            tmc.files.download_file(exercise["id"], force=force)
     else:
-        tmc.files.download_file(int(what))
+        tmc.files.download_file(int(what), force=force)
 
 
 @aliases("te")
@@ -161,6 +164,19 @@ def btc(val):
     return "\033[32m✔\033[0m" if val == 1 else "\033[31m✘\033[0m"
 
 
+@needs_a_course
+@arg('command', help='The command')
+def run(command):
+    """
+    Spawns a process with `command path-of-exercise`
+    """
+    exercise = tmc.db.selected_exercise()
+    if exercise:
+        course = tmc.db.selected_course()
+        p = os.path.join(course["path"], "/".join(exercise["name"].split("-")))
+        Popen(['nohup', command, p], stdout=DEVNULL, stderr=DEVNULL)
+
+
 @aliases("init")
 @aliases("conf")
 def configure():
@@ -213,7 +229,7 @@ def version():
 def main():
     parser = argh.ArghParser()
     parser.add_commands([select, update, updatecourses, download, test, submit,
-                         next, resetdb, configure, version, listall])
+                         next, resetdb, configure, version, listall, run])
     parser.dispatch()
 
 
