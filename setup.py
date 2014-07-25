@@ -2,6 +2,10 @@
 
 from setuptools import setup
 import os
+import sys
+
+if sys.version_info < (3, 2, 0):
+    raise Exception("Only python 3.2+ is supported.")
 
 
 def read(fname):

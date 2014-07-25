@@ -28,6 +28,11 @@ Needs Polish
 
 * All
 
+ToDo
+
+* More docs
+* Testing script
+
 usage
 ----
 
