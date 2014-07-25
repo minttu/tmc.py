@@ -9,6 +9,7 @@ import os
 import sys
 from functools import wraps
 
+
 def needs_a_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
@@ -33,6 +34,7 @@ def update():
     update_exercise()
     print("Done.")
 
+
 @aliases("upc")
 def updatecourses():
     @tmc.Spinner.SpinnerDecorator("Done.")
@@ -40,6 +42,7 @@ def updatecourses():
         for course in tmc.api.get_courses():
             tmc.db.add_course(course)
     update_course()
+
 
 @aliases("dl")
 @needs_a_course
@@ -49,18 +52,33 @@ def download(what):
         for exercise in tmc.db.get_exercises():
             tmc.files.download_file(exercise["id"])
 
+
 @aliases("te")
 @needs_a_course
 def test(what=None):
     if what is not None:
         if not tmc.files.test(int(what)):
             exit(-1)
+    else:
+        sel = tmc.db.selected_exercise()
+        if not sel:
+            print("Select a exercise with `tmc select exercise`")
+            exit(-1)
+        tmc.files.test(sel["id"])
+
 
 @aliases("su")
 @needs_a_course
 def submit(what=None):
     if what is not None:
         tmc.files.submit(int(what))
+    else:
+        sel = tmc.db.selected_exercise()
+        if not sel:
+            print("Select a exercise with `tmc select exercise`")
+            exit(-1)
+        tmc.files.test(sel["id"])
+
 
 @aliases("sel")
 def select(what):
@@ -93,22 +111,48 @@ def select(what):
             return True
 
 
+@needs_a_course
+def next():
+    sel = tmc.db.selected_exercise()
+    exercises = tmc.db.get_exercises()
+    next = 0
+    if not sel:
+        next = exercises[0]["id"]
+    else:
+        this = False
+        for exercise in exercises:
+            if sel["id"] == exercise["id"]:
+                this = True
+            elif this:
+                next = exercise["id"]
+                break
+    tmc.db.select_exercise(next)
+    print("Selected {}: {}".format(next, tmc.db.selected_exercise()["name"]))
+
+
 @aliases("ls")
 @needs_a_course
 def listall():
-    for exercise in tmc.db.get_exercises():
+    exercises = tmc.db.get_exercises()
+    print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
+        (len(str(exercises[0]["id"])) - 1) * " ",
+        "S", "D", "C", "Name"
+    ))
+    for exercise in exercises:
         # ToDo: use a pager
-        print("{0} │ {1} │ {2} │ {3}".format(exercise["id"],
-                                             unic(exercise["downloaded"]),
-                                             unic(exercise["completed"]),
-                                             exercise["name"]))
+        print("{0} │ {1} │ {2} │ {3} │ {4}".format(exercise["id"],
+                                                   bts(exercise["selected"]),
+                                                   btc(exercise["downloaded"]),
+                                                   btc(exercise["completed"]),
+                                                   exercise["name"]))
 
 
-def unic(val):
-    if val == 1:
-        return "✔"
-    else:
-        return "✘"
+def bts(val):
+    return "✔" if val == 1 else " "
+
+
+def btc(val):
+    return "✔" if val == 1 else "✘"
 
 
 @aliases("conf")
@@ -125,10 +169,11 @@ def configure():
         username = input("Username: ")
         password = getpass.getpass("Password: ")
         # wow, such security
-        token = base64.b64encode(bytes("{0}:{1}".format(username, password), 'utf-8')).decode("utf-8")
+        token = base64.b64encode(
+            bytes("{0}:{1}".format(username, password), 'utf-8')).decode("utf-8")
         try:
             tmc.api.configure(server, token)
-        except Exception: # ToDo: Better exception
+        except Exception:  # ToDo: Better exception
             if tmc.Prompt.prompt_yn("Retry authentication", True):
                 continue
             exit()
@@ -136,9 +181,11 @@ def configure():
     updatecourses()
     select("course")
 
+
 @needs_a_course
 def selpath():
-    defpath = os.path.join(os.path.expanduser("~"), "tmc", tmc.db.selected_course()["name"])
+    defpath = os.path.join(
+        os.path.expanduser("~"), "tmc", tmc.db.selected_course()["name"])
     path = input("File download path [{0}]: ".format(defpath))
     if len(path) == 0:
         path = defpath
@@ -157,8 +204,8 @@ def version():
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands(
-        [select, update, updatecourses, download, test, submit, resetdb, configure, version, listall])
+    parser.add_commands([select, update, updatecourses, download, test, submit,
+                         next, resetdb, configure, version, listall])
     parser.dispatch()
 
 

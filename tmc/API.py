@@ -29,8 +29,7 @@ class API:
 
     def configure(self, url, token):
         self.server_url = url
-        self.auth_header = {
-            "Authorization": "Basic {0}".format(token)}
+        self.auth_header = {"Authorization": "Basic {0}".format(token)}
         self.configured = True
 
         self.make_request("courses.json")
