@@ -5,7 +5,10 @@ import sys
 
 
 class Spinner(threading.Thread):
-    """ A spinny spinner. """
+
+    """
+    A spinny spinner.
+    """
 
     def __init__(self, msg=""):
         threading.Thread.__init__(self)

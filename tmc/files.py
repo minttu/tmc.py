@@ -1,4 +1,3 @@
-import tmc
 import zipfile
 import os
 import sys
