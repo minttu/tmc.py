@@ -18,8 +18,13 @@ class Files:
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
         outpath = os.path.join(course["path"])
+        realoutpath = os.path.join(course["path"],
+                                   "/".join(exercise["name"].split("-")))
         print("{0}exercises/{1}.zip -> {2}".format(
-            tmc.api.server_url, exercise["id"], outpath))
+            tmc.api.server_url, exercise["id"], realoutpath))
+        if os.path.isdir(realoutpath):
+            print("Already downloaded, skipping.")
+            return
 
         @tmc.Spinner.SpinnerDecorator("Done!")
         def inner(id):
@@ -69,8 +74,8 @@ class Files:
     def test(self, id):
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
-        outpath = os.path.join(
-            course["path"], "/".join(exercise["name"].split("-")))
+        outpath = os.path.join(course["path"],
+                               "/".join(exercise["name"].split("-")))
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")

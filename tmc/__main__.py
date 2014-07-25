@@ -19,8 +19,10 @@ def needs_a_course(func):
     return inner
 
 
+@aliases("reset")
 def resetdb():
-    tmc.db.reset()
+    if tmc.Prompt.prompt_yn("Reset database", False):
+        tmc.db.reset()
 
 
 @aliases("up")
@@ -46,11 +48,13 @@ def updatecourses():
 
 @aliases("dl")
 @needs_a_course
-def download(what):
+def download(what="all"):
     what = what.upper()
     if what == "ALL":
         for exercise in tmc.db.get_exercises():
             tmc.files.download_file(exercise["id"])
+    else:
+        tmc.files.download_file(int(what))
 
 
 @aliases("te")
@@ -83,7 +87,7 @@ def submit(what=None):
 @aliases("sel")
 def select(what):
     what = what.upper()
-    if what == "COURSE":
+    if what == "COURSE" or what == "C":
         og = tmc.db.selected_course()
         start_index = 0
         if og is not None:
@@ -95,11 +99,12 @@ def select(what):
             update()
             if tmc.db.selected_course()["path"] == "":
                 selpath()
-            return True
+            next()
+            return
         else:
             print("You can select the course with `tmc select course`")
-            return False
-    elif what == "EXERCISE":
+            return
+    else:
         og = tmc.db.selected_exercise()
         start_index = 0
         if og is not None:
@@ -108,7 +113,8 @@ def select(what):
             "Select a exercise", tmc.db.get_exercises(), start_index)
         if ret != -1:
             tmc.db.select_exercise(ret)
-            return True
+            print("Selected {}: {}".format(
+                ret, tmc.db.selected_exercise()["name"]))
 
 
 @needs_a_course
@@ -152,9 +158,10 @@ def bts(val):
 
 
 def btc(val):
-    return "✔" if val == 1 else "✘"
+    return "\033[32m✔\033[0m" if val == 1 else "\033[31m✘\033[0m"
 
 
+@aliases("init")
 @aliases("conf")
 def configure():
     if tmc.db.hasconf():
@@ -169,11 +176,12 @@ def configure():
         username = input("Username: ")
         password = getpass.getpass("Password: ")
         # wow, such security
-        token = base64.b64encode(
-            bytes("{0}:{1}".format(username, password), 'utf-8')).decode("utf-8")
+        token = base64.b64encode(bytes("{0}:{1}".format(username, password),
+                                       'utf-8')).decode("utf-8")
         try:
             tmc.api.configure(server, token)
-        except Exception:  # ToDo: Better exception
+        except Exception as e:  # ToDo: Better exception
+            print(e)
             if tmc.Prompt.prompt_yn("Retry authentication", True):
                 continue
             exit()

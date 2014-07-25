@@ -3,6 +3,7 @@
 from setuptools import setup
 import os
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -27,6 +28,7 @@ setup(name='tmc',
       ],
       install_requires=[
           "requests == 2.2.1",
-          "argh == 0.24.1"
+          "argh == 0.24.1",
+          "peewee == 2.2.5"
       ],
-)
+      )
