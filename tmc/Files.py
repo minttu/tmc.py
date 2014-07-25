@@ -86,7 +86,7 @@ class Files:
         if os.path.isfile(os.path.join(outpath, "build.xml")):
             return self.test_ant(outpath)
 
-    def submit(self, id):
+    def submit(self, id, request_review=False, pastebin=False):
         exercise = tmc.db.get_exercise(id)
         course = tmc.db.get_course(exercise["course_id"])
         outpath = os.path.join(
@@ -97,6 +97,12 @@ class Files:
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
         tmc.db.set_downloaded(id)
+
+        params = {}
+        if request_review:
+            params["request_review"] = "wolololo"
+        if pastebin:
+            params["paste"] = "wolololo"
 
         @tmc.Spinner.SpinnerDecorator("Sent.")
         def inner():
@@ -112,7 +118,7 @@ class Files:
                                 zipfile.ZIP_DEFLATED)
             zipfp.close()
             try:
-                data = tmc.api.send_zip(id, tmpfile.getvalue())
+                data = tmc.api.send_zip(id, tmpfile.getvalue(), params)
             except Exception as e:
                 return e
             if data:
@@ -149,3 +155,10 @@ class Files:
             elif data["status"] == "ok":
                 print("\033[32mPoints [{0}]\033[0m".format(
                     ", ".join(data["points"])))
+            if "paste_url" in data:
+                print("Pastebin: " + data["paste_url"])
+            if data.get("requests_review", False):
+                if data.get("reviewed", False):
+                    print("This submission has been reviewed")
+                else:
+                    print("Requested a review")

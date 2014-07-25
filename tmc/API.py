@@ -11,10 +11,11 @@ class API:
         self.auth_header = ""
         self.configured = False
         self.api_version = 7
+        # uncomment client and client_version after tmc.mooc.fi/mooc upgrades
         self.params = {
-            "api_version": self.api_version,
-            "client": "tmc.py",
-            "client_version": version
+            "api_version": self.api_version  # ,
+            #"client": "tmc.py",
+            #"client_version": version
         }
 
         self.db_configure()
@@ -80,14 +81,14 @@ class API:
                             headers=self.auth_header,
                             params=self.params)
 
-    def send_zip(self, id, file):
+    def send_zip(self, id, file, params):
         return self.get_json(
             requests.post(
                 "{0}exercises/{1}/submissions.json".format(
                     self.server_url, id),
                 headers=self.auth_header,
                 data={"api_version": self.api_version, "commit": "Submit"},
-                params=self.params,
+                params=params,
                 files={"submission[file]": ('submission.zip', file)}))
 
     def get_submission(self, id):

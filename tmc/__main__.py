@@ -74,21 +74,25 @@ def test(what=None):
         tmc.files.test(sel["id"])
 
 
+@arg("-p", "--pastebin", default=False, action="store_true",
+     help="Should the submission be sent to TMC pastebin.")
+@arg("-r", "--review", default=False, action="store_true",
+     help="Request a review for this submission.")
 @aliases("su")
 @needs_a_course
-def submit(what=None):
+def submit(what=None, pastebin=False, review=False):
     if what is not None:
-        tmc.files.submit(int(what))
+        tmc.files.submit(int(what), pastebin=pastebin, request_review=review)
     else:
         sel = tmc.db.selected_exercise()
         if not sel:
             print("Select a exercise with `tmc select exercise`")
             exit(-1)
-        tmc.files.test(sel["id"])
+        tmc.files.submit(sel["id"], pastebin=pastebin, request_review=review)
 
 
 @aliases("sel")
-def select(what):
+def select(what="e"):
     what = what.upper()
     if what == "COURSE" or what == "C":
         og = tmc.db.selected_course()
@@ -107,7 +111,7 @@ def select(what):
         else:
             print("You can select the course with `tmc select course`")
             return
-    else:
+    elif what == "EXERCISE" or what == "E":
         og = tmc.db.selected_exercise()
         start_index = 0
         if og is not None:

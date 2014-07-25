@@ -17,14 +17,17 @@ Works
 * Login
 * Downloading
 * Testing with ant
-
-Does not work
-
 * Submitting
 
 Needs Polish
 
 * All
+
+example
+=======
+
+    while course is not completed:
+        tmc run subl3 && tmc test && tmc submit && tmc next
 
 license
 =======
