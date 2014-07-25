@@ -1,4 +1,0 @@
-requests==2.2.0
-python-dateutil==2.2
-pytz==2013.9
-argh==0.23.3

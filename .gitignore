@@ -6,3 +6,4 @@ eggs/
 .installed.cfg
 *.egg
 *.json
+.idea/
