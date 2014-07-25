@@ -85,6 +85,7 @@ class Files:
         # testing for what type of project this is
         if os.path.isfile(os.path.join(outpath, "build.xml")):
             return self.test_ant(outpath)
+        print("Unknown project type")
 
     def submit(self, id, request_review=False, pastebin=False):
         exercise = tmc.db.get_exercise(id)

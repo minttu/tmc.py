@@ -11,6 +11,7 @@ def read(fname):
 setup(name='tmc',
       version='0.3.0',
       description='TestMyCode client',
+      long_description=read("README.md"),
       author='Juhani Imberg',
       author_email='juhani@imberg.com',
       url='http://github.com/JuhaniImberg/tmc.py/',
@@ -23,8 +24,12 @@ setup(name='tmc',
       classifiers=[
           "Development Status :: 3 - Alpha",
           "Environment :: Console",
+          "Environment :: Console :: Curses",
           "Intended Audience :: Developers",
           "License :: OSI Approved :: MIT License",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.3",
+          "Programming Language :: Python :: 3.4"
       ],
       install_requires=[
           "requests == 2.2.1",
