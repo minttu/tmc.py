@@ -1,18 +1,19 @@
 import requests
 
 from tmc.errors import APIError
+from tmc.models import Config
+from tmc import version
 
 
 class API:
 
     """Handles communication with TMC server."""
 
-    def __init__(self, version, db):
+    def __init__(self):
         self.server_url = ""
         self.auth_header = ""
         self.configured = False
         self.api_version = 7
-        self.db = db
         # uncomment client and client_version after tmc.mooc.fi/mooc upgrades
         self.params = {
             "api_version": self.api_version  # ,
@@ -24,11 +25,11 @@ class API:
 
     def db_configure(self):
         try:
-            url = self.db.config_get("url")
-            token = self.db.config_get("token")
+            url = Config.get_value("url")
+            token = Config.get_value("token")
             self.configure(url, token)
         except Exception as e:
-            pass
+            pass  # print(e)
 
     def configure(self, url, token):
         self.server_url = url
@@ -37,8 +38,8 @@ class API:
 
         self.make_request("courses.json")
 
-        self.db.config_set("url", url)
-        self.db.config_set("token", token)
+        Config.set("url", url)
+        Config.set("token", token)
 
     def make_request(self, slug):
         if not self.configured:
@@ -84,6 +85,8 @@ class API:
                             params=self.params)
 
     def send_zip(self, id, file, params):
+        if not self.configured:
+            raise APIError("API needs to be configured before use!")
         return self.get_json(
             requests.post(
                 "{0}exercises/{1}/submissions.json".format(

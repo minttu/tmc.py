@@ -12,7 +12,6 @@ The legacy branch has the python2 version. It's the version also in [PyPi](https
 todo
 ----
 
-* Start using a ORM for the dirty DB work.
 * Testing script
 
 state

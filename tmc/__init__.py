@@ -1,9 +1,9 @@
-from tmc.database import DB
+VERSION = version = "0.3.0"
+
+from tmc.models import DB
 from tmc.api import API
 from tmc.files import Files
 
-VERSION = version = "0.3.0"
-
 db = DB()
-api = API(version, db)
-files = Files(db, api)
+api = API()
+files = Files(api)

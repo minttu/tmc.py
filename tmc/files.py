@@ -7,27 +7,28 @@ import subprocess
 import xml.etree.ElementTree as ET
 import time
 
+from tmc.errors import *
 from tmc.spinner import SpinnerDecorator
+from tmc.models import Course, Exercise
 
 
 class Files:
 
-    def __init__(self, db, api):
-        self.db = db
+    def __init__(self, api):
         self.api = api
 
     def download_file(self, id, force=False):
-        exercise = self.db.get_exercise(id)
-        course = self.db.get_course(exercise["course_id"])
-        outpath = os.path.join(course["path"])
-        realoutpath = os.path.join(course["path"],
-                                   "/".join(exercise["name"].split("-")))
+        exercise = Exercise.get(Exercise.tid == id)
+        course = exercise.get_course()
+        outpath = os.path.join(course.path)
+        realoutpath = exercise.path()
         print("{0}exercises/{1}.zip -> {2}".format(self.api.server_url,
-                                                   exercise["id"],
+                                                   exercise.tid,
                                                    realoutpath))
         if not force and os.path.isdir(realoutpath):
             print("Already downloaded, skipping.")
-            self.db.set_downloaded(id)
+            exercise.is_downloaded = True
+            exercise.save()
             return
 
         @SpinnerDecorator("Done!")
@@ -40,7 +41,8 @@ class Files:
                 tmpfile.write(block)
             zipfp = zipfile.ZipFile(tmpfile)
             zipfp.extractall(outpath)
-            self.db.set_downloaded(id)
+            exercise.is_downloaded = True
+            exercise.save()
         inner(id)
 
     def test_ant(self, path):
@@ -78,30 +80,30 @@ class Files:
         return True
 
     def test(self, id):
-        exercise = self.db.get_exercise(id)
-        course = self.db.get_course(exercise["course_id"])
-        outpath = os.path.join(course["path"],
-                               "/".join(exercise["name"].split("-")))
+        exercise = Exercise.get(Exercise.tid == id)
+        course = exercise.get_course()
+        outpath = exercise.path()
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
-        self.db.set_downloaded(id)
+        exercise.is_downloaded = True
+        exercise.save()
         # testing for what type of project this is
         if os.path.isfile(os.path.join(outpath, "build.xml")):
             return self.test_ant(outpath)
         print("Unknown project type")
 
     def submit(self, id, request_review=False, pastebin=False):
-        exercise = self.db.get_exercise(id)
-        course = self.db.get_course(exercise["course_id"])
-        outpath = os.path.join(
-            course["path"], "/".join(exercise["name"].split("-")))
+        exercise = Exercise.get(Exercise.tid == id)
+        course = exercise.get_course()
+        outpath = exercise.path()
         print("{0} -> {1}exercises/{2}.json".format(outpath,
                                                     self.api.server_url, id))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
             raise Exception("That exercise is not downloaded!")
-        self.db.set_downloaded(id)
+        exercise.is_downloaded = True
+        exercise.save()
 
         params = {}
         if request_review:
@@ -129,7 +131,7 @@ class Files:
             if data:
                 return data
         resp = inner()
-        if type(resp) == Exception:
+        if type(resp) == Exception or type(resp) == APIError:
             sys.stderr.write("\033[31m{0}\033[0m\n".format(resp))
             exit(-1)
         if "submission_url" in resp:

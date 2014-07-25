@@ -12,7 +12,7 @@ class Menu:
 
     def __init__(self, screen, title, items, start):
         self.screen = screen
-        self.items = items
+        self.items = list(items)
         self.title = "{0} (q to cancel)".format(title)
         self.window = screen.subwin(0, 0)
         self.window.keypad(1)
@@ -48,7 +48,7 @@ class Menu:
                 if pos < height and pos >= 2:
                     self.window.addstr(2 + index - self.offset,
                                        1,
-                                       "{0}".format(item["name"]),
+                                       "{0}".format(item.name),
                                        curses.A_REVERSE if index == self.position else curses.A_NORMAL)
 
             key = self.window.getch()
@@ -68,7 +68,7 @@ class Menu:
 
         global ret
         if self.position >= 0:
-            ret = self.items[self.position]["id"]
+            ret = self.items[self.position].tid
         else:
             ret = self.position
         self.window.clear()
@@ -80,7 +80,7 @@ class Menu:
 def launch(title, items, start):
     if start != 0:
         for index, item in enumerate(items):
-            if item["id"] == start:
+            if item.tid == start:
                 start = index
                 break
     curses.wrapper(Menu, title, items, start)

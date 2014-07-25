@@ -12,13 +12,15 @@ from tmc.errors import *
 from tmc.prompt import prompt_yn
 from tmc.spinner import SpinnerDecorator
 from tmc import db, api, files, menu
+from tmc.models import Course, Exercise, Config
+
+import peewee
 
 
 def needs_a_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        if db.selected_course() is None:
-            raise NoCourseSelected()
+        Course.get_selected()
         return func(*args, **kwargs)
     return inner
 
@@ -38,17 +40,41 @@ def update(course=False):
         @SpinnerDecorator("Done.")
         def update_course():
             for course in api.get_courses():
-                db.add_course(course)
+                old = None
+                try:
+                    old = Course.get(Course.tid == course["id"])
+                except Course.DoesNotExist:
+                    old = None
+                if old:
+                    continue
+                Course.create(tid=course["id"],
+                              name=course["name"])
         update_course()
     else:
-        if not db.selected_course():
-            raise NoCourseSelected()
+        selected = Course.get_selected()
 
         @SpinnerDecorator()
         def update_exercise():
-            sel = db.selected_course()
-            for exercise in api.get_exercises(sel["id"]):
-                db.add_exercise(exercise, sel)
+            for exercise in api.get_exercises(selected.tid):
+                old = None
+                try:
+                    old = Exercise.get(Exercise.tid == exercise["id"])
+                except Exercise.DoesNotExist:
+                    old = None
+                if old is not None:
+                    old.name = exercise["name"]
+                    #old.course = selected.id,
+                    #old.is_attempted = exercise["attempted"]
+                    #old.is_completed = exercise["completed"]
+                    #old.deadline = exercise.get("deadline", None)
+                    old.save()
+                else:
+                    Exercise.create(tid=exercise["id"],
+                                    name=exercise["name"],
+                                    course=selected.id,
+                                    is_attempted=exercise["attempted"],
+                                    is_completed=exercise["completed"],
+                                    deadline=exercise.get("deadline", None))
         update_exercise()
         print("Done.")
 
@@ -60,9 +86,10 @@ def update(course=False):
 @wrap_errors([TMCError])
 def download(what="all", force=False):
     what = what.upper()
+    selected = Course.get_selected()
     if what == "ALL":
-        for exercise in db.get_exercises():
-            files.download_file(exercise["id"], force=force)
+        for exercise in selected.exercises:
+            files.download_file(exercise.tid, force=force)
     else:
         files.download_file(int(what), force=force)
 
@@ -75,10 +102,10 @@ def test(what=None):
         if not files.test(int(what)):
             exit(-1)
     else:
-        sel = db.selected_exercise()
+        sel = Exercise.get_selected()
         if not sel:
-            raise NoExerciseSelected()
-        files.test(sel["id"])
+            raise NoExerciseget_selected()
+        files.test(sel.tid)
 
 
 @arg("-p", "--pastebin", default=False, action="store_true",
@@ -92,10 +119,10 @@ def submit(what=None, pastebin=False, review=False):
     if what is not None:
         files.submit(int(what), pastebin=pastebin, request_review=review)
     else:
-        sel = db.selected_exercise()
+        sel = Exercise.get_selected()
         if not sel:
-            raise NoExerciseSelected()
-        files.submit(sel["id"], pastebin=pastebin, request_review=review)
+            raise NoExerciseget_selected()
+        files.submit(sel.tid, pastebin=pastebin, request_review=review)
 
 
 @aliases("sel")
@@ -103,15 +130,22 @@ def submit(what=None, pastebin=False, review=False):
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
 def select(course=False):
     if course:
-        og = db.selected_course()
+        og = None
+        try:
+            og = Course.get_selected()
+        except NoCourseSelected:
+            pass
         start_index = 0
         if og is not None:
-            start_index = og["id"]
-        ret = menu.launch("Select a course", db.get_courses(), start_index)
+            start_index = og.tid
+        ret = menu.launch("Select a course",
+                          Course.select().execute(),
+                          start_index)
         if ret != -1:
-            db.select_course(ret)
+            sel = Course.get(Course.tid == ret)
+            sel.set_select()
             update()
-            if db.selected_course()["path"] == "":
+            if sel.path == "":
                 selpath()
             next()
             return
@@ -119,61 +153,74 @@ def select(course=False):
             print("You can select the course with `tmc select --course`")
             return
     else:
-        og = db.selected_exercise()
+        og = None
+        try:
+            og = Exercise.get_selected()
+        except NoExerciseSelected:
+            pass
         start_index = 0
         if og is not None:
-            start_index = og["id"]
-        ret = menu.launch("Select a exercise", db.get_exercises(), start_index)
+            start_index = og.tid
+        sel = Course.get_selected()
+        ret = menu.launch("Select a exercise",
+                          Exercise.select().where(
+                              Exercise.course == sel.id).execute(),
+                          start_index)
         if ret != -1:
-            db.select_exercise(ret)
-            print("Selected {}: {}".format(
-                ret, db.selected_exercise()["name"]))
+            sel = Exercise.get(Exercise.tid == ret)
+            sel.set_select()
+            print("Selected {}".format(sel))
 
 
 @needs_a_course
 @wrap_errors([TMCError])
 def next():
-    sel = db.selected_exercise()
-    exercises = db.get_exercises()
-    next = 0
-    if not sel:
-        next = exercises[0]["id"]
-    else:
-        this = False
-        for exercise in exercises:
-            if sel["id"] == exercise["id"]:
-                this = True
-            elif this:
-                next = exercise["id"]
-                break
-    db.select_exercise(next)
-    print("Selected {}: {}".format(next, db.selected_exercise()["name"]))
+    sel = None
+    try:
+        sel = Exercise.get_selected()
+    except NoExerciseSelected:
+        pass
+    exercises = Course.get_selected().exercises
+    try:
+        if sel is None:
+            sel = [i for i in exercises][0]
+        else:
+            sel = Exercise.get(Exercise.id == sel.id + 1)
+    except peewee.InterfaceError as e:
+        # OK. This looks bizzare. It is. It works.
+        return next()
+        # Literally no idea why this works.
+        # sqlite3.InterfaceError: Error binding parameter 0 - probably
+        # unsupported type.
+        # This might be a bug in peewee.
+    sel.set_select()
+    print("Selected {}".format(sel))
 
 
 @aliases("ls")
 @wrap_errors([TMCError])
 @needs_a_course
 def listall():
-    exercises = db.get_exercises()
+    exercises = Course.get_selected().exercises
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
-        (len(str(exercises[0]["id"])) - 1) * " ",
+        (len(str(exercises[0].tid)) - 1) * " ",
         "S", "D", "C", "Name"
     ))
     for exercise in exercises:
         # ToDo: use a pager
-        print("{0} │ {1} │ {2} │ {3} │ {4}".format(exercise["id"],
-                                                   bts(exercise["selected"]),
-                                                   btc(exercise["downloaded"]),
-                                                   btc(exercise["completed"]),
-                                                   exercise["name"]))
+        print("{0} │ {1} │ {2} │ {3} │ {4}".format(exercise.tid,
+                                                   bts(exercise.is_selected),
+                                                   btc(exercise.is_downloaded),
+                                                   btc(exercise.is_completed),
+                                                   exercise.name))
 
 
 def bts(val):
-    return "✔" if val == 1 else " "
+    return "●" if val else " "
 
 
 def btc(val):
-    return "\033[32m✔\033[0m" if val == 1 else "\033[31m✘\033[0m"
+    return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
 
 
 @needs_a_course
@@ -183,17 +230,14 @@ def run(command):
     """
     Spawns a process with `command path-of-exercise`
     """
-    exercise = db.selected_exercise()
-    if exercise:
-        course = db.selected_course()
-        p = os.path.join(course["path"], "/".join(exercise["name"].split("-")))
-        Popen(['nohup', command, p], stdout=DEVNULL, stderr=DEVNULL)
+    exercise = Exercise.get_selected()
+    Popen(['nohup', command, exercise.path()], stdout=DEVNULL, stderr=DEVNULL)
 
 
 @aliases("init")
 @aliases("conf")
 def configure():
-    if db.hasconf():
+    if Config.has():
         sure = input("Override old configuration [y/N]: ")
         if sure.upper() != "Y":
             return
@@ -210,7 +254,7 @@ def configure():
         try:
             api.configure(server, token)
         except Exception as e:  # ToDo: Better exception
-            print(e)
+            raise e
             if prompt_yn("Retry authentication", True):
                 continue
             exit()
@@ -221,12 +265,15 @@ def configure():
 
 @needs_a_course
 def selpath():
-    defpath = os.path.join(
-        os.path.expanduser("~"), "tmc", db.selected_course()["name"])
+    sel = Course.get_selected()
+    defpath = os.path.join(os.path.expanduser("~"),
+                           "tmc",
+                           sel.name)
     path = input("File download path [{0}]: ".format(defpath))
     if len(path) == 0:
         path = defpath
-    db.set_selected_path(path)
+    sel.path = path
+    sel.save()
     dl = input("Download exercises [Y/n]: ")
     if dl.upper() == "Y" or len(dl) == 0:
         download("all")
