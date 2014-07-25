@@ -5,13 +5,12 @@ from argh.decorators import aliases, arg, wrap_errors
 import getpass
 import base64
 import os
-import sys
 from functools import wraps
 from subprocess import Popen, DEVNULL
-from tmc.errors import *
+from tmc.errors import TMCError, NoCourseSelected, NoExerciseSelected
 from tmc.prompt import prompt_yn
 from tmc.spinner import SpinnerDecorator
-from tmc import db, api, files, menu
+from tmc import db, api, files, menu, VERSION
 from tmc.models import Course, Exercise, Config
 
 import peewee
@@ -63,10 +62,10 @@ def update(course=False):
                     old = None
                 if old is not None:
                     old.name = exercise["name"]
-                    #old.course = selected.id,
-                    #old.is_attempted = exercise["attempted"]
-                    #old.is_completed = exercise["completed"]
-                    #old.deadline = exercise.get("deadline", None)
+                    old.course = selected.id,
+                    old.is_attempted = exercise["attempted"]
+                    old.is_completed = exercise["completed"]
+                    old.deadline = exercise.get("deadline", None)
                     old.save()
                 else:
                     Exercise.create(tid=exercise["id"],
@@ -104,7 +103,7 @@ def test(what=None):
     else:
         sel = Exercise.get_selected()
         if not sel:
-            raise NoExerciseget_selected()
+            raise NoExerciseSelected()
         files.test(sel.tid)
 
 
@@ -121,7 +120,7 @@ def submit(what=None, pastebin=False, review=False):
     else:
         sel = Exercise.get_selected()
         if not sel:
-            raise NoExerciseget_selected()
+            raise NoExerciseSelected()
         files.submit(sel.tid, pastebin=pastebin, request_review=review)
 
 
@@ -186,7 +185,7 @@ def next():
             sel = [i for i in exercises][0]
         else:
             sel = Exercise.get(Exercise.id == sel.id + 1)
-    except peewee.InterfaceError as e:
+    except peewee.InterfaceError:
         # OK. This looks bizzare. It is. It works.
         return next()
         # Literally no idea why this works.
@@ -282,7 +281,7 @@ def selpath():
 
 
 def version():
-    print("tmc.py version {0}".format(tmc.VERSION))
+    print("tmc.py version {0}".format(VERSION))
     print("Copyright 2014 Juhani Imberg")
 
 

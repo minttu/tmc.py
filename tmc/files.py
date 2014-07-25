@@ -1,15 +1,15 @@
 import zipfile
 import os
 import sys
-from io import BytesIO, StringIO
+from io import BytesIO
 from glob import glob
 import subprocess
 import xml.etree.ElementTree as ET
 import time
 
-from tmc.errors import *
+from tmc.errors import APIError
 from tmc.spinner import SpinnerDecorator
-from tmc.models import Course, Exercise
+from tmc.models import Exercise
 
 
 class Files:
@@ -47,7 +47,6 @@ class Files:
 
     def test_ant(self, path):
         retcode = -1
-        stderr = StringIO()
         out = None
         try:
             ret = subprocess.Popen(["ant", "clean", "test"],
@@ -81,7 +80,6 @@ class Files:
 
     def test(self, id):
         exercise = Exercise.get(Exercise.tid == id)
-        course = exercise.get_course()
         outpath = exercise.path()
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
@@ -95,7 +93,6 @@ class Files:
 
     def submit(self, id, request_review=False, pastebin=False):
         exercise = Exercise.get(Exercise.tid == id)
-        course = exercise.get_course()
         outpath = exercise.path()
         print("{0} -> {1}exercises/{2}.json".format(outpath,
                                                     self.api.server_url, id))
@@ -135,12 +132,14 @@ class Files:
             sys.stderr.write("\033[31m{0}\033[0m\n".format(resp))
             exit(-1)
         if "submission_url" in resp:
+            url = resp["submission_url"]
+            submission_id = int(url.split(".json")[0].split("submissions/")[1])
+
             @SpinnerDecorator("Results:")
             def inner():
                 while True:
                     try:
-                        data = self.api.get_submission(
-                            int(resp["submission_url"].split(".json")[0].split("submissions/")[1]))
+                        data = self.api.get_submission(submission_id)
                     except Exception as e:
                         return e
                     if data:
@@ -156,8 +155,8 @@ class Files:
                     if not testcase["successful"]:
                         sys.stderr.write("{0}:\n  {1}\n".format(
                             testcase["name"], testcase["message"]))
-                sys.stderr.write(
-                    "\033[33mFor better details run `tmc test " + str(id) + "`\033[0m\n")
+                sys.stderr.write("".join(["\033[33mFor better details run `tmc"
+                                          " test " + str(id) + "`\033[0m\n"]))
                 exit(-1)
             elif data["status"] == "ok":
                 print("\033[32mPoints [{0}]\033[0m".format(
@@ -169,3 +168,4 @@ class Files:
                     print("This submission has been reviewed")
                 else:
                     print("Requested a review")
+            print("URL: " + url.split(".json")[0])

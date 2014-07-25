@@ -2,7 +2,7 @@ import requests
 
 from tmc.errors import APIError
 from tmc.models import Config
-from tmc import version
+# from tmc import version
 
 
 class API:
@@ -15,10 +15,13 @@ class API:
         self.configured = False
         self.api_version = 7
         # uncomment client and client_version after tmc.mooc.fi/mooc upgrades
+        """ self.params = {
+            "api_version": self.api_version,
+            "client": "tmc.py",
+            "client_version": version
+        }"""
         self.params = {
-            "api_version": self.api_version  # ,
-            #"client": "tmc.py",
-            #"client_version": version
+            "api_version": self.api_version
         }
 
         self.db_configure()
@@ -28,7 +31,7 @@ class API:
             url = Config.get_value("url")
             token = Config.get_value("token")
             self.configure(url, token)
-        except Exception as e:
+        except Exception:
             pass  # print(e)
 
     def configure(self, url, token):
@@ -55,7 +58,7 @@ class API:
         json = None
         try:
             json = req.json()
-        except ValueError as e:
+        except ValueError:
             if "500" in req.text:
                 raise APIError("TMC Server encountered a internal error.")
             else:
@@ -68,13 +71,11 @@ class API:
         return self.make_request("courses.json")["courses"]
 
     def get_exercises(self, id):
-        return self.make_request("courses/{0}.json".format(id))["course"]["exercises"]
+        resp = self.make_request("courses/{0}.json".format(id))
+        return resp["course"]["exercises"]
 
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
-
-    def get_submission(self, id):
-        return self.make_request("submissions/{0}.json".format(id))
 
     def get_zip_stream(self, id):
         if not self.configured:

@@ -46,10 +46,13 @@ class Menu:
             for index, item in enumerate(self.items):
                 pos = index + 2 - self.offset
                 if pos < height and pos >= 2:
+                    style = curses.A_REVERSE
+                    if index != self.position:
+                        style = curses.A_NORMAL
                     self.window.addstr(2 + index - self.offset,
                                        1,
                                        "{0}".format(item.name),
-                                       curses.A_REVERSE if index == self.position else curses.A_NORMAL)
+                                       style)
 
             key = self.window.getch()
             if key in [curses.KEY_ENTER, ord('\n')]:
