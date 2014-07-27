@@ -39,7 +39,7 @@ setup(
         "Programming Language :: Python :: 3.4"
     ],
     install_requires=[
-        "requests == 2.2.1",
+        "requests == 2.3.0",
         "argh == 0.25.0",
         "peewee == 2.2.5"
     ],
