@@ -171,6 +171,7 @@ def select(course=False):
             print("Selected {}".format(sel))
 
 
+@aliases("skip")
 @needs_a_course
 @wrap_errors([TMCError])
 def next():
@@ -184,7 +185,11 @@ def next():
         if sel is None:
             sel = [i for i in exercises][0]
         else:
-            sel = Exercise.get(Exercise.id == sel.id + 1)
+            try:
+                sel = Exercise.get(Exercise.id == sel.id + 1)
+            except peewee.DoesNotExist:
+                print("There are no more exercises in this course.")
+                exit(-1)
     except peewee.InterfaceError:
         # OK. This looks bizzare. It is. It works.
         return next()

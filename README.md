@@ -36,41 +36,41 @@ ToDo
 usage
 ----
 
-### tmc configure
+### `tmc configure`
 
 Set the server, user credentials and selected course.
 
-### tmc select [--course]
+### `tmc select [--course]`
 
 Selects a exercise. If `--course` is given selects a course instead.
 
-### tmc update [--course]
+### `tmc update [--course]`
 
 Update the list of exercises. If `--course` is given updates courses instead.
 
-### tmc download [all|id]
+### `tmc download [all|id]`
 
 Download all of the exercises or a exercise with the id.
 
-### tmc test [id]
+### `tmc test [id]`
 
 Test the current exercise or a exercise with the id.
 
-### tmc submit [id]
+### `tmc submit [id] [--paste] [--review]`
 
-Submit the current exercise or a exercise with the id.
+Submit the current exercise or a exercise with the id. If `--paste` is set the submission will be sent to TMC pastebin. If `--review` is set a request for review will be created.
 
-### tmc next
+### `tmc next`
 
 Go to the next exercise.
 
-### tmc run command
+### `tmc run command`
 
 Executes `command exercise-path`. For example `tmc run gvim` would run
 `gvim /home/x/tmc/k2014-algomooc/viikko1/01.1.Kertoma` which would open gvim
 in that folder.
 
-### tmc reset
+### `tmc reset`
 
 Reset the database.
 
