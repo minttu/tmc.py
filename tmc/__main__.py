@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import argh
-from argh.decorators import aliases, arg, wrap_errors
+from argh.decorators import aliases, arg
 import getpass
 import base64
 import os
 from functools import wraps
 from subprocess import Popen, DEVNULL
-from tmc.errors import TMCError, NoCourseSelected, NoExerciseSelected
+from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
+                        NoSuchCourse, NoSuchExercise)
 from tmc.prompt import prompt_yn
 from tmc.spinner import SpinnerDecorator
 from tmc import db, api, files, menu, VERSION
@@ -24,15 +25,27 @@ def needs_a_course(func):
     return inner
 
 
+def wrap_tmc(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        try:
+            ret = func(*args, **kwargs)
+        except TMCError as e:
+            print(e)
+            exit(-1)
+        return ret
+    return inner
+
+
 @aliases("reset")
-@wrap_errors([TMCError])
+@wrap_tmc
 def resetdb():
     if prompt_yn("Reset database", False):
         db.reset()
 
 
 @aliases("up")
-@wrap_errors([TMCError])
+@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Update courses instead.")
 def update(course=False):
     if course:
@@ -62,7 +75,7 @@ def update(course=False):
                     old = None
                 if old is not None:
                     old.name = exercise["name"]
-                    old.course = selected.id,
+                    old.course = selected.id
                     old.is_attempted = exercise["attempted"]
                     old.is_completed = exercise["completed"]
                     old.deadline = exercise.get("deadline", None)
@@ -82,7 +95,7 @@ def update(course=False):
      action="store_true", help="Should the download be forced.")
 @aliases("dl")
 @needs_a_course
-@wrap_errors([TMCError])
+@wrap_tmc
 def download(what="all", force=False):
     what = what.upper()
     selected = Course.get_selected()
@@ -95,7 +108,7 @@ def download(what="all", force=False):
 
 @aliases("te")
 @needs_a_course
-@wrap_errors([TMCError])
+@wrap_tmc
 def test(what=None):
     if what is not None:
         if not files.test(int(what)):
@@ -113,7 +126,7 @@ def test(what=None):
      help="Request a review for this submission.")
 @aliases("su")
 @needs_a_course
-@wrap_errors([TMCError])
+@wrap_tmc
 def submit(what=None, pastebin=False, review=False):
     if what is not None:
         files.submit(int(what), pastebin=pastebin, request_review=review)
@@ -125,10 +138,12 @@ def submit(what=None, pastebin=False, review=False):
 
 
 @aliases("sel")
-@wrap_errors([TMCError])
+@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
-def select(course=False):
+@arg("-i", "--id", help="Select this ID without invoking the curses UI.")
+def select(course=False, id=None):
     if course:
+        update(course=True)
         og = None
         try:
             og = Course.get_selected()
@@ -137,15 +152,24 @@ def select(course=False):
         start_index = 0
         if og is not None:
             start_index = og.tid
-        ret = menu.launch("Select a course",
-                          Course.select().execute(),
-                          start_index)
+        ret = id
+        if not ret:
+            ret = menu.launch("Select a course",
+                              Course.select().execute(),
+                              start_index)
         if ret != -1:
-            sel = Course.get(Course.tid == ret)
+            try:
+                sel = Course.get(Course.tid == ret)
+            except peewee.DoesNotExist:
+                raise NoSuchCourse()
             sel.set_select()
             update()
             if sel.path == "":
                 selpath()
+            oldex = Exercise.get_selected()
+            if oldex:
+                oldex.is_selected = False
+                oldex.save()
             next()
             return
         else:
@@ -161,19 +185,24 @@ def select(course=False):
         if og is not None:
             start_index = og.tid
         sel = Course.get_selected()
-        ret = menu.launch("Select a exercise",
-                          Exercise.select().where(
-                              Exercise.course == sel.id).execute(),
-                          start_index)
+        ret = id
+        if not ret:
+            ret = menu.launch("Select a exercise",
+                              Exercise.select().where(
+                                  Exercise.course == sel.id).execute(),
+                              start_index)
         if ret != -1:
-            sel = Exercise.get(Exercise.tid == ret)
+            try:
+                sel = Exercise.get(Exercise.tid == ret)
+            except peewee.DoesNotExist:
+                raise NoSuchExercise()
             sel.set_select()
             print("Selected {}".format(sel))
 
 
 @aliases("skip")
 @needs_a_course
-@wrap_errors([TMCError])
+@wrap_tmc
 def next():
     sel = None
     try:
@@ -202,7 +231,7 @@ def next():
 
 
 @aliases("ls")
-@wrap_errors([TMCError])
+@wrap_tmc
 @needs_a_course
 def listall():
     exercises = Course.get_selected().exercises
@@ -229,7 +258,7 @@ def btc(val):
 
 @needs_a_course
 @arg('command', help='The command')
-@wrap_errors([TMCError])
+@wrap_tmc
 def run(command):
     """
     Spawns a process with `command path-of-exercise`
@@ -263,8 +292,7 @@ def configure():
                 continue
             exit()
         break
-    update(course=True)
-    select("course")
+    select(course=True)
 
 
 @needs_a_course
