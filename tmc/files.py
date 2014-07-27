@@ -7,7 +7,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 import time
 
-from tmc.errors import APIError
+from tmc.errors import APIError, TMCError
 from tmc.spinner import SpinnerDecorator
 from tmc.models import Exercise
 
@@ -57,7 +57,7 @@ class Files:
             retcode = ret.returncode
         except OSError as e:
             if e.errno is os.errno.ENOENT:
-                raise Exception("You don't seem to have ant installed.")
+                raise TMCError("You don't seem to have ant installed.")
         if retcode != 0:
             sys.stderr.write("\033[31m")
             tests = glob(
@@ -75,8 +75,41 @@ class Files:
                         sys.stderr.write(line.split("[javac] ")[1] + "\n")
             sys.stderr.write("\033[0m")
             return False
-        print("Looking good.")
         return True
+
+    def test_check(self, path):
+        out, err = "", ""
+        good = True
+        try:
+            ret = subprocess.Popen(["make", "clean", "all", "run-test"],
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   cwd=path)
+            out, err = ret.communicate()
+            out = out.decode("utf-8")
+            err = err.decode("utf-8")
+        except OSError as e:
+            if e.errno is os.errno.ENOENT:
+                raise TMCError("You don't have make installed")
+
+        testpath = os.path.join(path, "test", "tmc_test_results.xml")
+        if not os.path.isfile(testpath):
+            sys.stderr.write("\033[31m" + err + "\033[0m")
+            return False
+
+        sys.stderr.write("\033[31m")
+        ET.register_namespace("", "http://check.sourceforge.net/ns")
+        ns = "{http://check.sourceforge.net/ns}"
+        root = ET.parse(testpath).getroot()
+        for test in root.iter(ns + "test"):
+            if test.get("result") == "failure":
+                good = False
+                msg = test.find(ns + "message").text
+                func = test.find(ns + "fn").text
+                sys.stderr.write("{}: {}\n".format(func, msg))
+
+        sys.stderr.write("\033[0m")
+        return good
 
     def test(self, id):
         exercise = Exercise.get(Exercise.tid == id)
@@ -87,9 +120,18 @@ class Files:
         exercise.is_downloaded = True
         exercise.save()
         # testing for what type of project this is
+        ret = None
         if os.path.isfile(os.path.join(outpath, "build.xml")):
-            return self.test_ant(outpath)
-        print("Unknown project type")
+            ret = self.test_ant(outpath)
+        elif os.path.isfile(os.path.join(outpath, "Makefile")):
+            ret = self.test_check(outpath)
+        if ret is None:
+            print("Unknown project type")
+        else:
+            if ret:
+                print("\033[32mOK!\033[0m")
+            else:
+                exit(-1)
 
     def submit(self, id, request_review=False, pastebin=False):
         exercise = Exercise.get(Exercise.tid == id)
