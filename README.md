@@ -40,9 +40,9 @@ usage
 
 Set the server, user credentials and selected course.
 
-### `tmc select [--course]`
+### `tmc select [--course] [--id x]`
 
-Selects a exercise. If `--course` is given selects a course instead.
+Selects a exercise. If `--course` is given selects a course instead. If `--id` is given it tries to select that ID straight, without opening the curses menu.
 
 ### `tmc update [--course]`
 

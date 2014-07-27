@@ -197,6 +197,7 @@ def select(course=False, id=None):
             except peewee.DoesNotExist:
                 raise NoSuchExercise()
             sel.set_select()
+            sel.course.set_select()
             print("Selected {}".format(sel))
 
 
