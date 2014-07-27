@@ -48,9 +48,9 @@ Selects a exercise. If `--course` is given selects a course instead. If `--id` i
 
 Update the list of exercises. If `--course` is given updates courses instead.
 
-### `tmc download [all|id]`
+### `tmc download [remaining|all|id]`
 
-Download all of the exercises or a exercise with the id.
+Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id.
 
 ### `tmc test [id]`
 

@@ -9,7 +9,7 @@ from functools import wraps
 from subprocess import Popen, DEVNULL
 from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
                         NoSuchCourse, NoSuchExercise)
-from tmc.prompt import prompt_yn
+from tmc.prompt import yn_prompt, custom_prompt
 from tmc.spinner import SpinnerDecorator
 from tmc import db, api, files, menu, VERSION
 from tmc.models import Course, Exercise, Config
@@ -40,7 +40,7 @@ def wrap_tmc(func):
 @aliases("reset")
 @wrap_tmc
 def resetdb():
-    if prompt_yn("Reset database", False):
+    if yn_prompt("Reset database", False):
         db.reset()
 
 
@@ -102,6 +102,10 @@ def download(what="all", force=False):
     if what == "ALL":
         for exercise in selected.exercises:
             files.download_file(exercise.tid, force=force)
+    elif what == "REMAINING":
+        for exercise in selected.exercises:
+            if not exercise.is_completed:
+                files.download_file(exercise.tid, force=force)
     else:
         files.download_file(int(what), force=force)
 
@@ -166,7 +170,11 @@ def select(course=False, id=None):
             update()
             if sel.path == "":
                 selpath()
-            oldex = Exercise.get_selected()
+            oldex = None
+            try:
+                oldex = Exercise.get_selected()
+            except TMCError:
+                pass
             if oldex:
                 oldex.is_selected = False
                 oldex.save()
@@ -289,7 +297,7 @@ def configure():
             api.configure(server, token)
         except Exception as e:  # ToDo: Better exception
             raise e
-            if prompt_yn("Retry authentication", True):
+            if yn_prompt("Retry authentication"):
                 continue
             exit()
         break
@@ -307,9 +315,13 @@ def selpath():
         path = defpath
     sel.path = path
     sel.save()
-    dl = input("Download exercises [Y/n]: ")
-    if dl.upper() == "Y" or len(dl) == 0:
+    ret = custom_prompt("Download exercises R: Remaining A: All N: None",
+                        ["r", "a", "n"],
+                        "r")
+    if ret == "a":
         download("all")
+    elif ret == "r":
+        download("remaining")
     else:
         print("You can download the exercises with `tmc download all`")
 
