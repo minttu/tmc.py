@@ -14,7 +14,7 @@ def read(fname):
 
 setup(
     name='tmc',
-    version='0.3.0',
+    version='0.3.1',
     description='TestMyCode client',
     long_description=read("README.md"),
     author='Juhani Imberg',

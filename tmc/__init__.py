@@ -1,4 +1,4 @@
-VERSION = version = "0.3.0"
+VERSION = version = "0.3.1"
 
 from tmc.models import DB
 from tmc.api import API
