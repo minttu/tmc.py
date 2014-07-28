@@ -1,5 +1,6 @@
 import curses
 from curses import panel
+import math
 
 ret = -1
 
@@ -13,7 +14,7 @@ class Menu:
     def __init__(self, screen, title, items, start):
         self.screen = screen
         self.items = list(items)
-        self.title = "{0} (q to cancel)".format(title)
+        self.title = "┤ {0} (q to cancel) ├".format(title)
         self.window = screen.subwin(0, 0)
         self.window.keypad(1)
         self.panel = panel.new_panel(self.window)
@@ -25,6 +26,7 @@ class Menu:
         if self.position + 2 >= height:
             self.offset = (self.position + 2) - height + (height - 3)
         curses.curs_set(0)
+        curses.use_default_colors()
         self.display()
 
     def navigate(self, n):
@@ -41,29 +43,41 @@ class Menu:
         while True:
             self.window.clear()
             self.window.refresh()
-            self.window.addstr(0, 1, self.title, curses.A_NORMAL)
-            height = self.window.getmaxyx()[0]
+            self.window.bkgd(' ')
+            self.window.border()
+            width = self.window.getmaxyx()[1]
+            self.window.addstr(
+                0, int((width - len(self.title)) / 2), self.title)
+            height = self.window.getmaxyx()[0] - 1
             for index, item in enumerate(self.items):
                 pos = index + 2 - self.offset
-                if pos < height and pos >= 2:
-                    style = curses.A_REVERSE
-                    if index != self.position:
-                        style = curses.A_NORMAL
+                if pos < height - 1 and pos >= 2:
+                    style = curses.A_NORMAL
+                    if index == self.position:
+                        style |= curses.A_REVERSE
                     self.window.addstr(2 + index - self.offset,
-                                       1,
+                                       2,
                                        "{0}".format(item.name),
                                        style)
+            scroll = math.floor(
+                (self.position / len(self.items)) * (height - 3))
+            for i in range(0, height - 3):
+                char = "█" if i == scroll else "░"
+                self.window.addstr(
+                    i + 2, width - 1, char)
+            self.window.addstr(1, width - 1, "┴")
+            self.window.addstr(height - 1, width - 1, "┬")
 
             key = self.window.getch()
             if key in [curses.KEY_ENTER, ord('\n')]:
                 break
             elif key == curses.KEY_UP:
                 self.navigate(-1)
-                if self.position + 2 - self.offset <= 2 and self.position != 0:
+                if self.position - self.offset <= 1 and self.position != 0:
                     self.offset -= 1
             elif key == curses.KEY_DOWN:
                 self.navigate(1)
-                if self.position + 3 - self.offset >= height:
+                if self.position + 5 - self.offset >= height:
                     self.offset += 1
             elif key == ord('q'):
                 self.position = -1

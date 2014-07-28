@@ -168,7 +168,7 @@ def submit(what=None, pastebin=False, review=False):
 @arg("-i", "--id", help="Select this ID without invoking the curses UI.")
 def select(course=False, id=None):
     """
-    Select a course or a exercise.
+    Select a course or an exercise.
     """
     if course:
         update(course=True)
@@ -219,7 +219,7 @@ def select(course=False, id=None):
         sel = Course.get_selected()
         ret = id
         if not ret:
-            ret = menu.launch("Select a exercise",
+            ret = menu.launch("Select an exercise",
                               Exercise.select().where(
                                   Exercise.course == sel.id).execute(),
                               start_index)
