@@ -31,7 +31,7 @@ Update the list of exercises. If `--course` is given updates courses instead.
 
 #### `tmc download [remaining|all|id]`
 
-Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id.
+Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id. Defaults to remaining.
 
 #### `tmc test [id]`
 

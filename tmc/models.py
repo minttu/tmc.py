@@ -16,7 +16,7 @@ class BaseModel(Model):
 
 
 class Course(BaseModel):
-    tid = IntegerField()
+    tid = IntegerField(unique=True)
     name = CharField()
     is_selected = BooleanField(default=False)
     path = CharField(default="")
@@ -37,9 +37,12 @@ class Course(BaseModel):
     def __str__(self):
         return "Course \"{}\" (ID {})".format(self.name, self.tid)
 
+    def __repr__(self):
+        return str(self)
+
 
 class Exercise(BaseModel):
-    tid = IntegerField()
+    tid = IntegerField(unique=True)
     name = CharField()
     course = ForeignKeyField(Course, related_name="exercises")
     is_selected = BooleanField(default=False)
@@ -74,6 +77,9 @@ class Exercise(BaseModel):
 
     def __str__(self):
         return "Exercise \"{}\" (ID {})".format(self.name, self.tid)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Config(BaseModel):

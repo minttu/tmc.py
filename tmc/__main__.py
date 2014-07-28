@@ -96,14 +96,14 @@ def update(course=False):
 @aliases("dl")
 @needs_a_course
 @wrap_tmc
-def download(what="all", force=False):
+def download(what="remaining", force=False):
     what = what.upper()
     selected = Course.get_selected()
     if what == "ALL":
-        for exercise in selected.exercises:
+        for exercise in list(selected.exercises):
             files.download_file(exercise.tid, force=force)
     elif what == "REMAINING":
-        for exercise in selected.exercises:
+        for exercise in list(selected.exercises):
             if not exercise.is_completed:
                 files.download_file(exercise.tid, force=force)
     else:
