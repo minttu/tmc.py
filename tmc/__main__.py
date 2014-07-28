@@ -40,14 +40,23 @@ def wrap_tmc(func):
 @aliases("reset")
 @wrap_tmc
 def resetdb():
+    """
+    Resets the local database.
+    """
+    print("This won't remove any of your files,",
+          "but instead the local database that tracks your progress.")
     if yn_prompt("Reset database", False):
         db.reset()
+        print("Database resetted. You will need to tmc configure again.")
 
 
 @aliases("up")
 @wrap_tmc
 @arg("-c", "--course", action="store_true", help="Update courses instead.")
 def update(course=False):
+    """
+    Update the metadata of courses and or exercises from server.
+    """
     if course:
         @SpinnerDecorator("Done.")
         def update_course():
@@ -78,15 +87,18 @@ def update(course=False):
                     old.course = selected.id
                     old.is_attempted = exercise["attempted"]
                     old.is_completed = exercise["completed"]
-                    old.deadline = exercise.get("deadline", None)
+                    old.deadline = exercise.get("deadline")
+                    old.is_downloaded = os.path.isdir(old.path())
                     old.save()
                 else:
-                    Exercise.create(tid=exercise["id"],
-                                    name=exercise["name"],
-                                    course=selected.id,
-                                    is_attempted=exercise["attempted"],
-                                    is_completed=exercise["completed"],
-                                    deadline=exercise.get("deadline", None))
+                    ex = Exercise.create(tid=exercise["id"],
+                                         name=exercise["name"],
+                                         course=selected.id,
+                                         is_attempted=exercise["attempted"],
+                                         is_completed=exercise["completed"],
+                                         deadline=exercise.get("deadline"))
+                    ex.is_downloaded = os.path.isdir(ex.path())
+                    ex.save()
         update_exercise()
         print("Done.")
 
@@ -97,6 +109,9 @@ def update(course=False):
 @needs_a_course
 @wrap_tmc
 def download(what="remaining", force=False):
+    """
+    Download the exercises from the server.
+    """
     what = what.upper()
     selected = Course.get_selected()
     if what == "ALL":
@@ -114,6 +129,9 @@ def download(what="remaining", force=False):
 @needs_a_course
 @wrap_tmc
 def test(what=None):
+    """
+    Run tests on the selected exercise.
+    """
     if what is not None:
         if not files.test(int(what)):
             exit(-1)
@@ -132,6 +150,9 @@ def test(what=None):
 @needs_a_course
 @wrap_tmc
 def submit(what=None, pastebin=False, review=False):
+    """
+    Submit the selected exercise to the server.
+    """
     if what is not None:
         files.submit(int(what), pastebin=pastebin, request_review=review)
     else:
@@ -146,6 +167,9 @@ def submit(what=None, pastebin=False, review=False):
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
 @arg("-i", "--id", help="Select this ID without invoking the curses UI.")
 def select(course=False, id=None):
+    """
+    Select a course or a exercise.
+    """
     if course:
         update(course=True)
         og = None
@@ -213,6 +237,9 @@ def select(course=False, id=None):
 @needs_a_course
 @wrap_tmc
 def next():
+    """
+    Go to the next exercise.
+    """
     sel = None
     try:
         sel = Exercise.get_selected()
@@ -243,6 +270,9 @@ def next():
 @wrap_tmc
 @needs_a_course
 def listall():
+    """
+    Lists all of the exercises in the current course.
+    """
     exercises = Course.get_selected().exercises
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
         (len(str(exercises[0].tid)) - 1) * " ",
@@ -279,6 +309,9 @@ def run(command):
 @aliases("init")
 @aliases("conf")
 def configure():
+    """
+    Configure tmc.py to use your account.
+    """
     if Config.has():
         sure = input("Override old configuration [y/N]: ")
         if sure.upper() != "Y":
@@ -327,6 +360,9 @@ def selpath():
 
 
 def version():
+    """
+    Prints the version and exits.
+    """
     print("tmc.py version {0}".format(VERSION))
     print("Copyright 2014 Juhani Imberg")
 
