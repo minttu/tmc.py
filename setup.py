@@ -11,10 +11,11 @@ if sys.version_info < (3, 2, 0):
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+exec(read('tmc/version.py'))
 
 setup(
     name='tmc',
-    version='0.3.1',
+    version=__version__,
     description='TestMyCode client',
     long_description=read("README.md"),
     author='Juhani Imberg',

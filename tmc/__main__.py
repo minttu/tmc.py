@@ -11,7 +11,7 @@ from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
                         NoSuchCourse, NoSuchExercise, APIError)
 from tmc.prompt import yn_prompt, custom_prompt
 from tmc.spinner import SpinnerDecorator
-from tmc import db, api, files, menu, VERSION
+from tmc import db, api, files, menu
 from tmc.models import Course, Exercise, Config
 
 import peewee
@@ -351,7 +351,8 @@ def version():
     """
     Prints the version and exits.
     """
-    print("tmc.py version {0}".format(VERSION))
+    from tmc import version
+    print("tmc.py version {0}".format(version))
     print("Copyright 2014 Juhani Imberg")
 
 
