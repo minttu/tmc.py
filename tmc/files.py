@@ -11,6 +11,7 @@ from tmc.errors import (APIError, TMCError, NotDownloaded, MissingProgram,
                         WrongExerciseType)
 from tmc.spinner import SpinnerDecorator
 from tmc.models import Exercise
+from tmc.tests.basetest import test
 
 
 class Files:
@@ -37,8 +38,7 @@ class Files:
                     pass
             return
 
-        @SpinnerDecorator("Downloaded.",
-                          waitmsg="Downloading.")
+        @SpinnerDecorator("Downloaded.", waitmsg="Downloading.")
         def inner(id):
             req = self.api.get_zip_stream(id)
             tmpfile = BytesIO()
@@ -72,99 +72,15 @@ class Files:
             fp.write("".join(lines))
         print("Changed Java target from {} to {}".format(old, new))
 
-    def test_ant(self, path):
-        retcode = -1
-        out = None
-        try:
-            ret = subprocess.Popen(["ant", "clean", "test"],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   cwd=path)
-            out = ret.communicate()[0].decode('utf-8')
-            retcode = ret.returncode
-        except OSError as e:
-            if e.errno in [os.errno.ENOENT, os.errno.EACCES]:
-                raise MissingProgram("ant")
-        if retcode != 0:
-            sys.stderr.write("\033[31m")
-            tests = glob(
-                os.path.join(path, "build", "test", "results", "*.xml"))
-            if len(tests) > 0:
-                for test in tests:
-                    tree = ET.parse(test)
-                    root = tree.getroot()
-                    for testcase in root.findall("testcase"):
-                        for failure in testcase.findall("failure"):
-                            sys.stderr.write(failure.text)
-            else:
-                for line in out.split("\n"):
-                    if "[javac] " in line:
-                        sys.stderr.write(line.split("[javac] ")[1] + "\n")
-            sys.stderr.write("\033[0m")
-            return False
-        return True
-
-    def test_check(self, path):
-        out, err = "", ""
-        good = True
-        try:
-            ret = subprocess.Popen(["make", "clean", "all", "run-test"],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   cwd=path)
-            out, err = ret.communicate()
-            out = out.decode("utf-8")
-            err = err.decode("utf-8")
-        except OSError as e:
-            if e.errno is os.errno.ENOENT:
-                raise MissingProgram("make")
-
-        testpath = os.path.join(path, "test", "tmc_test_results.xml")
-        if not os.path.isfile(testpath):
-            sys.stderr.write("\033[31m" + err + "\033[0m")
-            return False
-
-        sys.stderr.write("\033[31m")
-        ET.register_namespace("", "http://check.sourceforge.net/ns")
-        ns = "{http://check.sourceforge.net/ns}"
-        root = ET.parse(testpath).getroot()
-        for test in root.iter(ns + "test"):
-            if test.get("result") == "failure":
-                good = False
-                msg = test.find(ns + "message").text
-                func = test.find(ns + "fn").text
-                sys.stderr.write("{}: {}\n".format(func, msg))
-
-        sys.stderr.write("\033[0m")
-        return good
-
     def test(self, id):
-        exercise = Exercise.get(Exercise.tid == id)
-        outpath = exercise.path()
-        print("testing {0}".format(outpath))
-        if not os.path.isdir(outpath):
-            raise NotDownloaded()
-        exercise.is_downloaded = True
-        exercise.save()
-        # testing for what type of project this is
-        ret = None
-        if os.path.isfile(os.path.join(outpath, "build.xml")):
-            ret = self.test_ant(outpath)
-        elif os.path.isfile(os.path.join(outpath, "Makefile")):
-            ret = self.test_check(outpath)
-        if ret is None:
-            print("Unknown project type")
-        else:
-            if ret:
-                print("\033[32mOK!\033[0m")
-            else:
-                exit(-1)
+        test(Exercise.get(Exercise.tid == id))
 
     def submit(self, id, request_review=False, pastebin=False):
         exercise = Exercise.get(Exercise.tid == id)
         outpath = exercise.path()
         print("{0} -> {1}exercises/{2}.json".format(outpath,
-                                                    self.api.server_url, id))
+                                                    self.api.server_url,
+                                                    id))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
             raise NotDownloaded()

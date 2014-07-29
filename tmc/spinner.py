@@ -41,7 +41,14 @@ def SpinnerDecorator(msg="", waitmsg="Please wait"):
         def wrapper(*args, **kwargs):
             spin = Spinner(msg=msg, waitmsg=waitmsg)
             spin.start()
-            a = func(*args, **kwargs)
+            a = None
+            try:
+                a = func(*args, **kwargs)
+            except Exception as e:
+                spin.msg = "Something went wrong: "
+                spin.stopspin()
+                spin.join()
+                raise e
             spin.stopspin()
             spin.join()
             return a

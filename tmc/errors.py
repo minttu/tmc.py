@@ -12,6 +12,11 @@ class WrongExerciseType(TMCError):
         self.value = "Exercise wasn't of the type \"{}\".".format(type)
 
 
+class NoSuitableTestFound(TMCError):
+    def __init__(self):
+        self.value = "No suitable test was found for the exercise."
+
+
 class MissingProgram(TMCError):
     def __init__(self, program):
         self.value = "You don't seem to have {} installed.".format(program)
