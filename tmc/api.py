@@ -13,6 +13,7 @@ class API:
         self.server_url = ""
         self.auth_header = ""
         self.configured = False
+        self.tried_configuration = False
         self.api_version = 7
         # uncomment client and client_version after tmc.mooc.fi/mooc upgrades
         """ self.params = {
@@ -23,8 +24,6 @@ class API:
         self.params = {
             "api_version": self.api_version
         }
-
-        self.db_configure()
 
     def db_configure(self):
         try:
@@ -38,18 +37,22 @@ class API:
         self.server_url = url
         self.auth_header = {"Authorization": "Basic {0}".format(token)}
         self.configured = True
+        self.tried_configuration = True
 
         self.make_request("courses.json")
 
         Config.set("url", url)
         Config.set("token", token)
 
-    def make_request(self, slug):
+    def make_request(self, slug, timeout=10):
+        if not self.tried_configuration:
+            self.db_configure()
         if not self.configured:
             raise APIError("API needs to be configured before use!")
         req = requests.get("{0}{1}".format(self.server_url, slug),
                            headers=self.auth_header,
-                           params=self.params)
+                           params=self.params,
+                           timeout=timeout)
         if req is None:
             raise APIError("Request is none!")
         return self.get_json(req)
@@ -86,6 +89,8 @@ class API:
                             params=self.params)
 
     def send_zip(self, id, file, params):
+        if not self.tried_configuration:
+            self.db_configure()
         if not self.configured:
             raise APIError("API needs to be configured before use!")
         return self.get_json(
