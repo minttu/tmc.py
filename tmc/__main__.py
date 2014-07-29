@@ -16,29 +16,23 @@ from tmc.models import Course, Exercise, Config
 
 import peewee
 
-
-def needs_a_course(func):
+def selected_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        Course.get_selected()
-        return func(*args, **kwargs)
+        course = Course.get_selected()
+        return func(course, *args, **kwargs)
     return inner
 
 
-def wrap_tmc(func):
+def selected_exercise(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        try:
-            ret = func(*args, **kwargs)
-        except TMCError as e:
-            print(e)
-            exit(-1)
-        return ret
+        exercise = Exercise.get_selected()
+        return func(exercise, *args, **kwargs)
     return inner
 
 
 @aliases("reset")
-@wrap_tmc
 def resetdb():
     """
     Resets the local database.
@@ -51,7 +45,6 @@ def resetdb():
 
 
 @aliases("up")
-@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Update courses instead.")
 def update(course=False):
     """
@@ -104,28 +97,26 @@ def update(course=False):
         update_exercise()
 
 
+@aliases("dl")
 @arg("-f", "--force", default=False, action="store_true",
      help="Should the download be forced.")
 @arg("-u", "--upgrade", default=False, action="store_true",
      help="Should the Java target be upgraded from 1.6 to 1.7")
-@aliases("dl")
-@needs_a_course
-@wrap_tmc
-def download(what="remaining", force=False, upgrade=False):
+@selected_course
+def download(course, what="remaining", force=False, upgrade=False):
     """
     Download the exercises from the server.
     """
     what = what.upper()
-    selected = Course.get_selected()
 
     def dl(id):
         files.download_file(id, force=force, update_java=upgrade)
 
     if what == "ALL":
-        for exercise in list(selected.exercises):
+        for exercise in list(course.exercises):
             dl(exercise.tid)
     elif what == "REMAINING":
-        for exercise in list(selected.exercises):
+        for exercise in list(course.exercises):
             if not exercise.is_completed:
                 dl(exercise.tid)
     else:
@@ -133,9 +124,8 @@ def download(what="remaining", force=False, upgrade=False):
 
 
 @aliases("te")
-@needs_a_course
-@wrap_tmc
-def test(what=None):
+@selected_course
+def test(course, what=None):
     """
     Run tests on the selected exercise.
     """
@@ -149,14 +139,13 @@ def test(what=None):
         files.test(sel.tid)
 
 
+@aliases("su")
 @arg("-p", "--pastebin", default=False, action="store_true",
      help="Should the submission be sent to TMC pastebin.")
 @arg("-r", "--review", default=False, action="store_true",
      help="Request a review for this submission.")
-@aliases("su")
-@needs_a_course
-@wrap_tmc
-def submit(what=None, pastebin=False, review=False):
+@selected_course
+def submit(course, what=None, pastebin=False, review=False):
     """
     Submit the selected exercise to the server.
     """
@@ -170,7 +159,6 @@ def submit(what=None, pastebin=False, review=False):
 
 
 @aliases("sel")
-@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
 @arg("-i", "--id", help="Select this ID without invoking the curses UI.")
 def select(course=False, id=None):
@@ -241,9 +229,8 @@ def select(course=False, id=None):
 
 
 @aliases("skip")
-@needs_a_course
-@wrap_tmc
-def next():
+@selected_course
+def next(course):
     """
     Go to the next exercise.
     """
@@ -252,10 +239,9 @@ def next():
         sel = Exercise.get_selected()
     except NoExerciseSelected:
         pass
-    exercises = Course.get_selected().exercises
     try:
         if sel is None:
-            sel = [i for i in exercises][0]
+            sel = [i for i in course.exercises][0]
         else:
             try:
                 sel = Exercise.get(Exercise.id == sel.id + 1)
@@ -274,13 +260,12 @@ def next():
 
 
 @aliases("ls")
-@wrap_tmc
-@needs_a_course
-def listall():
+@selected_course
+def listall(course):
     """
     Lists all of the exercises in the current course.
     """
-    exercises = Course.get_selected().exercises
+    exercises = course.exercises
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
         (len(str(exercises[0].tid)) - 1) * " ",
         "S", "D", "C", "Name"
@@ -302,19 +287,16 @@ def btc(val):
     return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
 
 
-@needs_a_course
 @arg('command', help='The command')
-@wrap_tmc
-def run(command):
+@selected_exercise
+def run(exercise, command):
     """
     Spawns a process with `command path-of-exercise`
     """
-    exercise = Exercise.get_selected()
     Popen(['nohup', command, exercise.path()], stdout=DEVNULL, stderr=DEVNULL)
 
 
-@aliases("init")
-@aliases("conf")
+@aliases("init", "conf")
 def configure():
     """
     Configure tmc.py to use your account.
@@ -344,17 +326,16 @@ def configure():
     select(course=True)
 
 
-@needs_a_course
-def select_a_path():
-    sel = Course.get_selected()
+@selected_course
+def select_a_path(course):
     defpath = os.path.join(os.path.expanduser("~"),
                            "tmc",
-                           sel.name)
+                           course.name)
     path = input("File download path [{0}]: ".format(defpath))
     if len(path) == 0:
         path = defpath
-    sel.path = path
-    sel.save()
+    course.path = path
+    course.save()
     ret = custom_prompt("Download exercises R: Remaining A: All N: None",
                         ["r", "a", "n"],
                         "r")
@@ -378,7 +359,11 @@ def main():
     parser = argh.ArghParser()
     parser.add_commands([select, update, download, test, submit, next, resetdb,
                          configure, version, listall, run])
-    parser.dispatch()
+    try:
+        parser.dispatch()
+    except TMCError as e:
+        print(e)
+        exit(-1)
 
 
 if __name__ == "__main__":
