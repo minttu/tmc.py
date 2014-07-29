@@ -58,7 +58,8 @@ def update(course=False):
     Update the metadata of courses and or exercises from server.
     """
     if course:
-        @SpinnerDecorator("Done.")
+        @SpinnerDecorator("Updated course metadata.",
+                          waitmsg="Updating course metadata.")
         def update_course():
             for course in api.get_courses():
                 old = None
@@ -74,7 +75,8 @@ def update(course=False):
     else:
         selected = Course.get_selected()
 
-        @SpinnerDecorator()
+        @SpinnerDecorator("Updated exercise metadata.",
+                          waitmsg="Updating exercise metadata.")
         def update_exercise():
             for exercise in api.get_exercises(selected.tid):
                 old = None
@@ -100,7 +102,6 @@ def update(course=False):
                     ex.is_downloaded = os.path.isdir(ex.path())
                     ex.save()
         update_exercise()
-        print("Done.")
 
 
 @arg("-f", "--force", default=False, action="store_true",

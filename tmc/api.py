@@ -81,6 +81,8 @@ class API:
         return self.make_request("exercises/{0}.json".format(id))
 
     def get_zip_stream(self, id):
+        if not self.tried_configuration:
+            self.db_configure()
         if not self.configured:
             raise APIError("API needs to be configured before use!")
         return requests.get("{0}exercises/{1}.zip".format(self.server_url, id),

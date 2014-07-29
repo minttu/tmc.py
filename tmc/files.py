@@ -37,7 +37,8 @@ class Files:
                     pass
             return
 
-        @SpinnerDecorator("Done!")
+        @SpinnerDecorator("Downloaded.",
+                          waitmsg="Downloading.")
         def inner(id):
             req = self.api.get_zip_stream(id)
             tmpfile = BytesIO()
@@ -176,7 +177,8 @@ class Files:
         if pastebin:
             params["paste"] = "wolololo"
 
-        @SpinnerDecorator("Sent.")
+        @SpinnerDecorator("Submission has been sent.",
+                          waitmsg="Sending submission.")
         def inner():
             tmpfile = BytesIO()
             zipfp = zipfile.ZipFile(tmpfile, "w")
@@ -203,7 +205,8 @@ class Files:
             url = resp["submission_url"]
             submission_id = int(url.split(".json")[0].split("submissions/")[1])
 
-            @SpinnerDecorator("Results:")
+            @SpinnerDecorator("Results:",
+                              "Waiting for results.")
             def inner():
                 while True:
                     try:

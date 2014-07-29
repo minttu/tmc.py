@@ -10,10 +10,10 @@ class Spinner(threading.Thread):
     A spinny spinner.
     """
 
-    def __init__(self, msg=""):
+    def __init__(self, msg="", waitmsg="Please wait"):
         threading.Thread.__init__(self)
         self.chars = ['\\', '|', '/', '-']
-        self.template = "({0}) Please wait."
+        self.template = "({0}) " + waitmsg
         self.msg = msg
         self.index = 0
         self.spinning = True
@@ -35,11 +35,11 @@ class Spinner(threading.Thread):
         self.index = 0
 
 
-def SpinnerDecorator(msg=""):
+def SpinnerDecorator(msg="", waitmsg="Please wait"):
     def Decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            spin = Spinner(msg)
+            spin = Spinner(msg=msg, waitmsg=waitmsg)
             spin.start()
             a = func(*args, **kwargs)
             spin.stopspin()
