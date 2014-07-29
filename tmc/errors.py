@@ -7,6 +7,16 @@ class TMCError(RuntimeError):
         return "\033[31m{0}\033[0m".format(self.value)
 
 
+class WrongExerciseType(TMCError):
+    def __init__(self, type):
+        self.value = "Exercise wasn't of the type \"{}\".".format(type)
+
+
+class MissingProgram(TMCError):
+    def __init__(self, program):
+        self.value = "You don't seem to have {} installed.".format(program)
+
+
 class NotDownloaded(TMCError):
 
     def __init__(self):
@@ -28,13 +38,13 @@ class NoSuchCourse(TMCError):
 class NoCourseSelected(TMCError):
 
     def __init__(self):
-        self.value = "No course has been selected. (tmc select course)"
+        self.value = "No course has been selected. (tmc select --course)"
 
 
 class NoExerciseSelected(TMCError):
 
     def __init__(self):
-        self.value = "No exercise has been selected. (tmc select exercise)"
+        self.value = "No exercise has been selected. (tmc select)"
 
 
 class APIError(TMCError):

@@ -7,7 +7,8 @@ import subprocess
 import xml.etree.ElementTree as ET
 import time
 
-from tmc.errors import APIError, TMCError
+from tmc.errors import (APIError, TMCError, NotDownloaded, MissingProgram,
+                        WrongExerciseType)
 from tmc.spinner import SpinnerDecorator
 from tmc.models import Exercise
 
@@ -17,7 +18,7 @@ class Files:
     def __init__(self, api):
         self.api = api
 
-    def download_file(self, id, force=False):
+    def download_file(self, id, force=False, update_java=False):
         exercise = Exercise.get(Exercise.tid == id)
         course = exercise.get_course()
         outpath = os.path.join(course.path)
@@ -29,6 +30,11 @@ class Files:
             print("Already downloaded, skipping.")
             exercise.is_downloaded = True
             exercise.save()
+            if update_java:
+                try:
+                    self.modify_java_target(exercise)
+                except TMCError:
+                    pass
             return
 
         @SpinnerDecorator("Done!")
@@ -45,6 +51,26 @@ class Files:
             exercise.save()
         inner(id)
 
+        if update_java:
+            try:
+                self.modify_java_target(exercise)
+            except WrongExerciseType:
+                pass
+
+    def modify_java_target(self, exercise, old="1.6", new="1.7"):
+        path = os.path.join(exercise.path(), "nbproject", "project.properties")
+        if not os.path.isfile(path):
+            raise WrongExerciseType("java")
+        lines = []
+        with open(path) as fp:
+            lines = fp.readlines()
+        for ind, line in enumerate(lines):
+            if line.startswith("javac") and line.endswith("=" + old + "\n"):
+                lines[ind] = line.replace(old, new)
+        with open(path, "w") as fp:
+            fp.write("".join(lines))
+        print("Changed Java target from {} to {}".format(old, new))
+
     def test_ant(self, path):
         retcode = -1
         out = None
@@ -56,8 +82,8 @@ class Files:
             out = ret.communicate()[0].decode('utf-8')
             retcode = ret.returncode
         except OSError as e:
-            if e.errno is os.errno.ENOENT:
-                raise TMCError("You don't seem to have ant installed.")
+            if e.errno in [os.errno.ENOENT, os.errno.EACCES]:
+                raise MissingProgram("ant")
         if retcode != 0:
             sys.stderr.write("\033[31m")
             tests = glob(
@@ -90,7 +116,7 @@ class Files:
             err = err.decode("utf-8")
         except OSError as e:
             if e.errno is os.errno.ENOENT:
-                raise TMCError("You don't have make installed")
+                raise MissingProgram("make")
 
         testpath = os.path.join(path, "test", "tmc_test_results.xml")
         if not os.path.isfile(testpath):
@@ -116,7 +142,7 @@ class Files:
         outpath = exercise.path()
         print("testing {0}".format(outpath))
         if not os.path.isdir(outpath):
-            raise Exception("That exercise is not downloaded!")
+            raise NotDownloaded()
         exercise.is_downloaded = True
         exercise.save()
         # testing for what type of project this is
@@ -140,7 +166,7 @@ class Files:
                                                     self.api.server_url, id))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
-            raise Exception("That exercise is not downloaded!")
+            raise NotDownloaded()
         exercise.is_downloaded = True
         exercise.save()
 

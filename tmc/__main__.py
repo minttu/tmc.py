@@ -8,7 +8,7 @@ import os
 from functools import wraps
 from subprocess import Popen, DEVNULL
 from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
-                        NoSuchCourse, NoSuchExercise)
+                        NoSuchCourse, NoSuchExercise, APIError)
 from tmc.prompt import yn_prompt, custom_prompt
 from tmc.spinner import SpinnerDecorator
 from tmc import db, api, files, menu, VERSION
@@ -103,26 +103,32 @@ def update(course=False):
         print("Done.")
 
 
-@arg("-f", "--force", default=False,
-     action="store_true", help="Should the download be forced.")
+@arg("-f", "--force", default=False, action="store_true",
+     help="Should the download be forced.")
+@arg("-u", "--upgrade", default=False, action="store_true",
+     help="Should the Java target be upgraded from 1.6 to 1.7")
 @aliases("dl")
 @needs_a_course
 @wrap_tmc
-def download(what="remaining", force=False):
+def download(what="remaining", force=False, upgrade=False):
     """
     Download the exercises from the server.
     """
     what = what.upper()
     selected = Course.get_selected()
+
+    def dl(id):
+        files.download_file(id, force=force, update_java=upgrade)
+
     if what == "ALL":
         for exercise in list(selected.exercises):
-            files.download_file(exercise.tid, force=force)
+            dl(exercise.tid)
     elif what == "REMAINING":
         for exercise in list(selected.exercises):
             if not exercise.is_completed:
-                files.download_file(exercise.tid, force=force)
+                dl(exercise.tid)
     else:
-        files.download_file(int(what), force=force)
+        dl(int(what))
 
 
 @aliases("te")
@@ -193,7 +199,7 @@ def select(course=False, id=None):
             sel.set_select()
             update()
             if sel.path == "":
-                selpath()
+                select_a_path()
             oldex = None
             try:
                 oldex = Exercise.get_selected()
@@ -320,7 +326,7 @@ def configure():
     server = input("Server url [https://tmc.mooc.fi/mooc/]: ")
     if len(server) == 0:
         server = "https://tmc.mooc.fi/mooc/"
-    while(True):
+    while True:
         username = input("Username: ")
         password = getpass.getpass("Password: ")
         # wow, such security
@@ -328,8 +334,8 @@ def configure():
                                        'utf-8')).decode("utf-8")
         try:
             api.configure(server, token)
-        except Exception as e:  # ToDo: Better exception
-            raise e
+        except APIError as e:
+            print(e)
             if yn_prompt("Retry authentication"):
                 continue
             exit()
@@ -338,7 +344,7 @@ def configure():
 
 
 @needs_a_course
-def selpath():
+def select_a_path():
     sel = Course.get_selected()
     defpath = os.path.join(os.path.expanduser("~"),
                            "tmc",
