@@ -16,6 +16,7 @@ from tmc.models import Course, Exercise, Config
 
 import peewee
 
+
 def selected_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
@@ -119,6 +120,8 @@ def download(course, what="remaining", force=False, upgrade=False):
         for exercise in list(course.exercises):
             if not exercise.is_completed:
                 dl(exercise.tid)
+            else:
+                exercise.update_downloaded()
     else:
         dl(int(what))
 
@@ -230,7 +233,7 @@ def select(course=False, id=None):
 
 @aliases("skip")
 @selected_course
-def next(course):
+def next(course, num=1):
     """
     Go to the next exercise.
     """
@@ -241,10 +244,13 @@ def next(course):
         pass
     try:
         if sel is None:
-            sel = [i for i in course.exercises][0]
+            for i in course.exercises:
+                if i.is_downloaded:
+                    sel = i
+                    break
         else:
             try:
-                sel = Exercise.get(Exercise.id == sel.id + 1)
+                sel = Exercise.get(Exercise.id == sel.id + num)
             except peewee.DoesNotExist:
                 print("There are no more exercises in this course.")
                 exit(-1)
@@ -256,35 +262,45 @@ def next(course):
         # unsupported type.
         # This might be a bug in peewee.
     sel.set_select()
-    print("Selected {}".format(sel))
+    listall(single=sel)
+    # print("Selected {}".format(sel))
+
+
+@aliases("prev")
+def previous():
+    next(num=-1)
 
 
 @aliases("ls")
 @selected_course
-def listall(course):
+def listall(course, single=None):
     """
     Lists all of the exercises in the current course.
     """
-    exercises = course.exercises
+
+    def bs(val):
+        return "●" if val else " "
+
+    def bc(val):
+        return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
+
+    def format(exercise):
+        return "{0} │ {1} │ {2} │ {3} │ {4}".format(exercise.tid,
+                                                    bs(exercise.is_selected),
+                                                    bc(exercise.is_downloaded),
+                                                    bc(exercise.is_completed),
+                                                    exercise.menuname())
+
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
-        (len(str(exercises[0].tid)) - 1) * " ",
+        (len(str(course.exercises[0].tid)) - 1) * " ",
         "S", "D", "C", "Name"
     ))
-    for exercise in exercises:
+    if single:
+        print(format(single))
+        return
+    for exercise in course.exercises:
         # ToDo: use a pager
-        print("{0} │ {1} │ {2} │ {3} │ {4}".format(exercise.tid,
-                                                   bts(exercise.is_selected),
-                                                   btc(exercise.is_downloaded),
-                                                   btc(exercise.is_completed),
-                                                   exercise.name))
-
-
-def bts(val):
-    return "●" if val else " "
-
-
-def btc(val):
-    return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
+        print(format(exercise))
 
 
 @arg('command', help='The command')
@@ -358,8 +374,8 @@ def version():
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([select, update, download, test, submit, next, resetdb,
-                         configure, version, listall, run])
+    parser.add_commands([select, update, download, test, submit, next,
+                         previous, resetdb, configure, version, listall, run])
     try:
         parser.dispatch()
     except TMCError as e:

@@ -67,6 +67,10 @@ class Exercise(BaseModel):
         self.is_selected = True
         self.save()
 
+    def update_downloaded(self):
+        self.is_downloaded = os.path.isdir(self.path())
+        self.save()
+
     @staticmethod
     def get_selected():
         is_selected = Exercise.select().where(Exercise.is_selected == True)
