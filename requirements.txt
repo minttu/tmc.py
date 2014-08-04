@@ -1,0 +1,4 @@
+jinja2
+markdown
+pyyaml
+pyinotify

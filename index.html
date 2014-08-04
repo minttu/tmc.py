@@ -1,0 +1,434 @@
+<!DOCTYPE HTML>
+
+
+
+
+
+
+
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>tmc.py Documentation</title>
+    <link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="docs.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-3">
+                <nav class="nav affix hidden-xs">
+                    <div class="list-group">
+                        <a class="list-group-item heading" href="#commands">Commands</a>
+                        
+                        <a class="list-group-item" href="#configure">configure</a>
+                        
+                        <a class="list-group-item" href="#download">download</a>
+                        
+                        <a class="list-group-item" href="#next">next</a>
+                        
+                        <a class="list-group-item" href="#previous">previous</a>
+                        
+                        <a class="list-group-item" href="#reset">reset</a>
+                        
+                        <a class="list-group-item" href="#run">run</a>
+                        
+                        <a class="list-group-item" href="#select">select</a>
+                        
+                        <a class="list-group-item" href="#submit">submit</a>
+                        
+                        <a class="list-group-item" href="#test">test</a>
+                        
+                        <a class="list-group-item" href="#update">update</a>
+                        
+                    </div>
+                </nav>
+            </div>
+            <div class="col-xs-9">
+                <h1>tmc.py docs <a href="https://github.com/JuhaniImberg/tmc.py">GitHub</a></h1>
+
+                <section>
+                    <h2>Commands</h2>
+                    
+                    <article>
+                        
+    <h4 class="name" id="configure">
+        configure
+        
+        
+            
+                <span class="alias">conf</span>
+            
+                <span class="alias">init</span>
+            
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Set the server, user credentials and selected course.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="download">
+        download
+        
+        
+            
+                <span class="alias">dl</span>
+            
+        
+    </h4>
+
+                        
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--all</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-a</code>
+
+                                        
+                                    
+                                    <p>Download all exercises instead of just the remaining ones.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--force</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-f</code>
+
+                                        
+                                    
+                                    <p>Download ontop of older exercises, removing progress.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--id</code>
+
+                                    
+                                        
+    <code>ID</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-i</code>
+
+                                        
+                                            
+    <code>ID</code>
+
+                                        
+                                    
+                                    <p>Download a spesific <code>ID</code>.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--upgrade</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-u</code>
+
+                                        
+                                    
+                                    <p>If the exercise is for Java 1.6, the target will be updated to 1.7.</p>
+                                </li>
+                            
+                            </ul>
+                        
+                        <p class="description"><p>Download the remaining exercises.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="next">
+        next
+        
+        
+            
+                <span class="alias">skip</span>
+            
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Go to the next exercise.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="previous">
+        previous
+        
+        
+            
+                <span class="alias">prev</span>
+            
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Go to the previous exercise.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="reset">
+        reset
+        
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Reset the clientside database. This will remove all configuration but won't touch the actual files.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="run">
+        run
+        
+            <code>COMMAND</code>
+        
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Executes <code>COMMAND exercise-path</code>. For example <code>tmc run gvim</code> would run <code>gvim /home/x/tmc/k2014-algomooc/viikko1/01.1.Kertoma</code> which would open <code>gvim</code> in that folder.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="select">
+        select
+        
+        
+            
+                <span class="alias">sel</span>
+            
+        
+    </h4>
+
+                        
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--course</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-c</code>
+
+                                        
+                                    
+                                    <p>Select a course instead.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--id</code>
+
+                                    
+                                        
+    <code>ID</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-i</code>
+
+                                        
+                                            
+    <code>ID</code>
+
+                                        
+                                    
+                                    <p>Select a spesific <code>ID</code> instead of using a curses menu.</p>
+                                </li>
+                            
+                            </ul>
+                        
+                        <p class="description"><p>Select a exercise.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="submit">
+        submit
+        
+        
+            
+                <span class="alias">su</span>
+            
+        
+    </h4>
+
+                        
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--id</code>
+
+                                    
+                                        
+    <code>ID</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-i</code>
+
+                                        
+                                            
+    <code>ID</code>
+
+                                        
+                                    
+                                    <p>Submit a spesific <code>ID</code>.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--paste</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-p</code>
+
+                                        
+                                    
+                                    <p>Submit the exercise to TMC pastebin.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--review</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-r</code>
+
+                                        
+                                    
+                                    <p>Request a review on the exercise.</p>
+                                </li>
+                            
+                            </ul>
+                        
+                        <p class="description"><p>Submit the current exercise.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="test">
+        test
+        
+        
+            
+                <span class="alias">te</span>
+            
+        
+    </h4>
+
+                        
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--id</code>
+
+                                    
+                                        
+    <code>ID</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-i</code>
+
+                                        
+                                            
+    <code>ID</code>
+
+                                        
+                                    
+                                    <p>Test a spesific <code>ID</code>.</p>
+                                </li>
+                            
+                            </ul>
+                        
+                        <p class="description"><p>Test the current exercise.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="update">
+        update
+        
+        
+            
+                <span class="alias">up</span>
+            
+        
+    </h4>
+
+                        
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--course</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-c</code>
+
+                                        
+                                    
+                                    <p>Update course metadata instead.</p>
+                                </li>
+                            
+                            </ul>
+                        
+                        <p class="description"><p>Update the exercise metadata of the selected course.</p></p>
+                    </article>
+                    
+                </section>
+
+                <footer>Generated by a bunch of files. 2014-08-04 19:29:53.868146</footer>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

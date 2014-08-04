@@ -1,0 +1,61 @@
+nav {
+    margin-top: 28px;
+    min-width: 19%;
+    top: 0;
+    bottom: 0;
+    padding-right: 0.5rem;
+    padding-bottom: 1rem;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    padding: 0.5rem;
+    padding-left: 1rem;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0,0,0,0.09) !important;
+}
+
+.list-group-item.heading {
+    background-color: #f0f0f0;
+}
+
+.list-group-item.top {
+    background-color: #f5f5f5;
+}
+
+.list-group-item.bottom {
+    padding-left: 2rem;
+}
+
+.name:before {
+    content: "tmc ";
+    color: #999;
+}
+
+.alias:before {
+    content: " │ ";
+    color: #ccc;
+}
+
+.alias {
+    color: #999;
+}
+
+.gray {
+    color: #999;
+}
+
+footer {
+    text-align: center;
+    margin: 1em;
+}
+
+a[href^="https://github.com/"] {
+    font-size: 70%;
+}
+
+:target {
+   background-color: #ffffaa;
+}

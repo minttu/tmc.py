@@ -1,0 +1,107 @@
+---
+commands:
+  - name: configure
+    aliases:
+      - conf
+      - init
+    description: >
+      Set the server, user credentials and selected course.
+  - name: select
+    aliases:
+      - sel
+    description: >
+      Select a exercise.
+    optional_arguments:
+      - name: --course
+        short: -c
+        description: >
+          Select a course instead.
+      - name: --id
+        short: -i
+        argument: ID
+        description: >
+          Select a spesific `ID` instead of using a curses menu.
+  - name: update
+    aliases:
+      - up
+    description: >
+      Update the exercise metadata of the selected course.
+    optional_arguments:
+      - name: --course
+        short: -c
+        description: >
+          Update course metadata instead.
+  - name: download
+    aliases:
+      - dl
+    description: >
+      Download the remaining exercises.
+    optional_arguments:
+      - name: --force
+        short: -f
+        description: >
+          Download ontop of older exercises, removing progress.
+      - name: --upgrade
+        short: -u
+        description: >
+          If the exercise is for Java 1.6, the target will be updated to 1.7.
+      - name: --id
+        short: -i
+        argument: ID
+        description: >
+          Download a spesific `ID`.
+      - name: --all
+        short: -a
+        description: >
+          Download all exercises instead of just the remaining ones.
+  - name: test
+    aliases:
+      - te
+    description: >
+      Test the current exercise.
+    optional_arguments:
+      - name: --id
+        short: -i
+        argument: ID
+        description: >
+          Test a spesific `ID`.
+  - name: submit
+    aliases:
+      - su
+    description: >
+      Submit the current exercise.
+    optional_arguments:
+      - name: --id
+        short: -i
+        argument: ID
+        description: >
+          Submit a spesific `ID`.
+      - name: --paste
+        short: -p
+        description: >
+          Submit the exercise to TMC pastebin.
+      - name: --review
+        short: -r
+        description: >
+          Request a review on the exercise.
+  - name: next
+    aliases:
+      - skip
+    description: >
+      Go to the next exercise.
+  - name: previous
+    aliases:
+      - prev
+    description: >
+      Go to the previous exercise.
+  - name: reset
+    description: >
+      Reset the clientside database. This will remove all configuration but
+      won't touch the actual files.
+  - name: run
+    argument: COMMAND
+    description: >
+      Executes `COMMAND exercise-path`. For example `tmc run gvim` would run
+      `gvim /home/x/tmc/k2014-algomooc/viikko1/01.1.Kertoma` which would open
+      `gvim` in that folder.
+
