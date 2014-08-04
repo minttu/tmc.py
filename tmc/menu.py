@@ -57,7 +57,7 @@ class Menu:
                         style |= curses.A_REVERSE
                     self.window.addstr(2 + index - self.offset,
                                        2,
-                                       "{0}".format(item.name),
+                                       "{0}".format(item.menuname()),
                                        style)
             scroll = math.floor(
                 (self.position / len(self.items)) * (height - 3))
@@ -73,11 +73,11 @@ class Menu:
                 break
             elif key == curses.KEY_UP:
                 self.navigate(-1)
-                if self.position - self.offset <= 1 and self.position != 0:
+                if self.position - self.offset <= 0 and self.position != 0:
                     self.offset -= 1
             elif key == curses.KEY_DOWN:
                 self.navigate(1)
-                if self.position + 5 - self.offset >= height:
+                if self.position + 4 - self.offset >= height:
                     self.offset += 1
             elif key == ord('q'):
                 self.position = -1

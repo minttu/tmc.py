@@ -40,6 +40,9 @@ class Course(BaseModel):
     def __repr__(self):
         return str(self)
 
+    def menuname(self):
+        return self.name
+
 
 class Exercise(BaseModel):
     tid = IntegerField(unique=True)
@@ -80,6 +83,27 @@ class Exercise(BaseModel):
 
     def __repr__(self):
         return str(self)
+
+    def menuname(self):
+        short, rest = "", ""
+        if "-" in self.name:
+            rest = self.name.split("-")[-1]
+        else:
+            rest = self.name
+        if "." in rest:
+            split = rest.split(".")
+            short = split[-1]
+            rest = ".".join(split[0:-1])
+        realname = ""
+        for c in short:
+            if c.isupper():
+                if len(realname) == 0:
+                    realname += c
+                else:
+                    realname += " " + c
+            else:
+                realname += c
+        return rest.replace("_", " - ") + " - " + realname
 
 
 class Config(BaseModel):
