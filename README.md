@@ -17,47 +17,7 @@ installation
 usage
 ----
 
-#### `tmc configure`
-
-Set the server, user credentials and selected course.
-
-#### `tmc select [--course] [--id x]`
-
-Selects a exercise. If `--course` is given selects a course instead. If `--id` is given it tries to select that ID straight, without opening the curses menu.
-
-#### `tmc update [--course]`
-
-Update the list of exercises. If `--course` is given updates courses instead.
-
-#### `tmc download [remaining|all|id] [--force] [--upgrade]`
-
-Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id. Defaults to remaining. If `--force` is specified it will download on top of existing files. If `--upgrade` is specified Java projects will have their target versions bumped up from `1.6` to `1.7`.
-
-#### `tmc test [id]`
-
-Test the current exercise or a exercise with the id.
-
-#### `tmc submit [id] [--paste] [--review]`
-
-Submit the current exercise or a exercise with the id. If `--paste` is set the submission will be sent to TMC pastebin. If `--review` is set a request for review will be created.
-
-#### `tmc next`
-
-Go to the next exercise.
-
-#### `tmc previous`
-
-Go to the previous exercise.
-
-#### `tmc run command`
-
-Executes `command exercise-path`. For example `tmc run gvim` would run
-`gvim /home/x/tmc/k2014-algomooc/viikko1/01.1.Kertoma` which would open gvim
-in that folder.
-
-#### `tmc reset`
-
-Reset the database.
+(See here)[https://JuhaniImberg.github.io/tmc.py/]
 
 example
 -------

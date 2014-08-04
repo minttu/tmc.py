@@ -143,7 +143,8 @@ class Files:
                         sys.stderr.write("{0}:\n  {1}\n".format(
                             testcase["name"], testcase["message"]))
                 sys.stderr.write("".join(["\033[33mFor better details run `tmc"
-                                          " test " + str(id) + "`\033[0m\n"]))
+                                          " test --id ", str(id),
+                                          "`\033[0m\n"]))
                 exit(-1)
             elif data["status"] == "ok":
                 print("\033[32mPoints [{0}]\033[0m".format(

@@ -99,41 +99,44 @@ def update(course=False):
 
 
 @aliases("dl")
+@arg("-i", "--id", help="Download this ID.")
+@arg("-a", "--all", default=False, action="store_true",
+     help="Download all exercises.")
 @arg("-f", "--force", default=False, action="store_true",
      help="Should the download be forced.")
 @arg("-u", "--upgrade", default=False, action="store_true",
      help="Should the Java target be upgraded from 1.6 to 1.7")
 @selected_course
-def download(course, what="remaining", force=False, upgrade=False):
+def download(course, id=None, all=False, force=False, upgrade=False):
     """
     Download the exercises from the server.
     """
-    what = what.upper()
 
     def dl(id):
         files.download_file(id, force=force, update_java=upgrade)
 
-    if what == "ALL":
+    if all:
         for exercise in list(course.exercises):
             dl(exercise.tid)
-    elif what == "REMAINING":
+    elif id is not None:
+        dl(int(id))
+    else:
         for exercise in list(course.exercises):
             if not exercise.is_completed:
                 dl(exercise.tid)
             else:
                 exercise.update_downloaded()
-    else:
-        dl(int(what))
 
 
 @aliases("te")
+@arg("-i", "--id", help="Test this ID.")
 @selected_course
-def test(course, what=None):
+def test(course, id=None):
     """
     Run tests on the selected exercise.
     """
-    if what is not None:
-        if not files.test(int(what)):
+    if id is not None:
+        if not files.test(int(id)):
             exit(-1)
     else:
         sel = Exercise.get_selected()
@@ -143,17 +146,18 @@ def test(course, what=None):
 
 
 @aliases("su")
+@arg("-i", "--id", help="Submit this ID.")
 @arg("-p", "--pastebin", default=False, action="store_true",
      help="Should the submission be sent to TMC pastebin.")
 @arg("-r", "--review", default=False, action="store_true",
      help="Request a review for this submission.")
 @selected_course
-def submit(course, what=None, pastebin=False, review=False):
+def submit(course, id=None, pastebin=False, review=False):
     """
     Submit the selected exercise to the server.
     """
-    if what is not None:
-        files.submit(int(what), pastebin=pastebin, request_review=review)
+    if id is not None:
+        files.submit(int(id), pastebin=pastebin, request_review=review)
     else:
         sel = Exercise.get_selected()
         if not sel:
@@ -362,7 +366,7 @@ def select_a_path(course):
     elif ret == "r":
         download("remaining")
     else:
-        print("You can download the exercises with `tmc download all`")
+        print("You can download the exercises with `tmc download --all`")
 
 
 def version():
