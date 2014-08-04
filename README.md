@@ -29,9 +29,9 @@ Selects a exercise. If `--course` is given selects a course instead. If `--id` i
 
 Update the list of exercises. If `--course` is given updates courses instead.
 
-#### `tmc download [remaining|all|id]`
+#### `tmc download [remaining|all|id] [--force] [--upgrade]`
 
-Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id. Defaults to remaining.
+Download all of the remaining exercises that have not been completed, all of the exercises or a exercise with the id. Defaults to remaining. If `--force` is specified it will download on top of existing files. If `--upgrade` is specified Java projects will have their target versions bumped up from `1.6` to `1.7`.
 
 #### `tmc test [id]`
 

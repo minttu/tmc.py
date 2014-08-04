@@ -3,9 +3,9 @@ from peewee import (Model, CharField, BooleanField, DateField, IntegerField,
                     ForeignKeyField, SqliteDatabase)
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
-sqlite = SqliteDatabase(os.path.join(os.path.expanduser("~"),
-                                     '.config',
-                                     'tmc.db'))
+sqlite = SqliteDatabase(
+    os.path.join(os.path.expanduser("~"), ".config", "tmc.db")
+)
 sqlite.connect()
 
 

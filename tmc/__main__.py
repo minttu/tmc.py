@@ -8,37 +8,31 @@ import os
 from functools import wraps
 from subprocess import Popen, DEVNULL
 from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
-                        NoSuchCourse, NoSuchExercise)
+                        NoSuchCourse, NoSuchExercise, APIError)
 from tmc.prompt import yn_prompt, custom_prompt
 from tmc.spinner import SpinnerDecorator
-from tmc import db, api, files, menu, VERSION
+from tmc import db, api, files, menu
 from tmc.models import Course, Exercise, Config
 
 import peewee
 
-
-def needs_a_course(func):
+def selected_course(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        Course.get_selected()
-        return func(*args, **kwargs)
+        course = Course.get_selected()
+        return func(course, *args, **kwargs)
     return inner
 
 
-def wrap_tmc(func):
+def selected_exercise(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        try:
-            ret = func(*args, **kwargs)
-        except TMCError as e:
-            print(e)
-            exit(-1)
-        return ret
+        exercise = Exercise.get_selected()
+        return func(exercise, *args, **kwargs)
     return inner
 
 
 @aliases("reset")
-@wrap_tmc
 def resetdb():
     """
     Resets the local database.
@@ -51,14 +45,14 @@ def resetdb():
 
 
 @aliases("up")
-@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Update courses instead.")
 def update(course=False):
     """
     Update the metadata of courses and or exercises from server.
     """
     if course:
-        @SpinnerDecorator("Done.")
+        @SpinnerDecorator("Updated course metadata.",
+                          waitmsg="Updating course metadata.")
         def update_course():
             for course in api.get_courses():
                 old = None
@@ -74,7 +68,8 @@ def update(course=False):
     else:
         selected = Course.get_selected()
 
-        @SpinnerDecorator()
+        @SpinnerDecorator("Updated exercise metadata.",
+                          waitmsg="Updating exercise metadata.")
         def update_exercise():
             for exercise in api.get_exercises(selected.tid):
                 old = None
@@ -100,35 +95,37 @@ def update(course=False):
                     ex.is_downloaded = os.path.isdir(ex.path())
                     ex.save()
         update_exercise()
-        print("Done.")
 
 
-@arg("-f", "--force", default=False,
-     action="store_true", help="Should the download be forced.")
 @aliases("dl")
-@needs_a_course
-@wrap_tmc
-def download(what="remaining", force=False):
+@arg("-f", "--force", default=False, action="store_true",
+     help="Should the download be forced.")
+@arg("-u", "--upgrade", default=False, action="store_true",
+     help="Should the Java target be upgraded from 1.6 to 1.7")
+@selected_course
+def download(course, what="remaining", force=False, upgrade=False):
     """
     Download the exercises from the server.
     """
     what = what.upper()
-    selected = Course.get_selected()
+
+    def dl(id):
+        files.download_file(id, force=force, update_java=upgrade)
+
     if what == "ALL":
-        for exercise in list(selected.exercises):
-            files.download_file(exercise.tid, force=force)
+        for exercise in list(course.exercises):
+            dl(exercise.tid)
     elif what == "REMAINING":
-        for exercise in list(selected.exercises):
+        for exercise in list(course.exercises):
             if not exercise.is_completed:
-                files.download_file(exercise.tid, force=force)
+                dl(exercise.tid)
     else:
-        files.download_file(int(what), force=force)
+        dl(int(what))
 
 
 @aliases("te")
-@needs_a_course
-@wrap_tmc
-def test(what=None):
+@selected_course
+def test(course, what=None):
     """
     Run tests on the selected exercise.
     """
@@ -142,14 +139,13 @@ def test(what=None):
         files.test(sel.tid)
 
 
+@aliases("su")
 @arg("-p", "--pastebin", default=False, action="store_true",
      help="Should the submission be sent to TMC pastebin.")
 @arg("-r", "--review", default=False, action="store_true",
      help="Request a review for this submission.")
-@aliases("su")
-@needs_a_course
-@wrap_tmc
-def submit(what=None, pastebin=False, review=False):
+@selected_course
+def submit(course, what=None, pastebin=False, review=False):
     """
     Submit the selected exercise to the server.
     """
@@ -163,7 +159,6 @@ def submit(what=None, pastebin=False, review=False):
 
 
 @aliases("sel")
-@wrap_tmc
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
 @arg("-i", "--id", help="Select this ID without invoking the curses UI.")
 def select(course=False, id=None):
@@ -193,7 +188,7 @@ def select(course=False, id=None):
             sel.set_select()
             update()
             if sel.path == "":
-                selpath()
+                select_a_path()
             oldex = None
             try:
                 oldex = Exercise.get_selected()
@@ -234,9 +229,8 @@ def select(course=False, id=None):
 
 
 @aliases("skip")
-@needs_a_course
-@wrap_tmc
-def next():
+@selected_course
+def next(course):
     """
     Go to the next exercise.
     """
@@ -245,10 +239,9 @@ def next():
         sel = Exercise.get_selected()
     except NoExerciseSelected:
         pass
-    exercises = Course.get_selected().exercises
     try:
         if sel is None:
-            sel = [i for i in exercises][0]
+            sel = [i for i in course.exercises][0]
         else:
             try:
                 sel = Exercise.get(Exercise.id == sel.id + 1)
@@ -267,13 +260,12 @@ def next():
 
 
 @aliases("ls")
-@wrap_tmc
-@needs_a_course
-def listall():
+@selected_course
+def listall(course):
     """
     Lists all of the exercises in the current course.
     """
-    exercises = Course.get_selected().exercises
+    exercises = course.exercises
     print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
         (len(str(exercises[0].tid)) - 1) * " ",
         "S", "D", "C", "Name"
@@ -295,19 +287,16 @@ def btc(val):
     return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
 
 
-@needs_a_course
 @arg('command', help='The command')
-@wrap_tmc
-def run(command):
+@selected_exercise
+def run(exercise, command):
     """
     Spawns a process with `command path-of-exercise`
     """
-    exercise = Exercise.get_selected()
     Popen(['nohup', command, exercise.path()], stdout=DEVNULL, stderr=DEVNULL)
 
 
-@aliases("init")
-@aliases("conf")
+@aliases("init", "conf")
 def configure():
     """
     Configure tmc.py to use your account.
@@ -320,7 +309,7 @@ def configure():
     server = input("Server url [https://tmc.mooc.fi/mooc/]: ")
     if len(server) == 0:
         server = "https://tmc.mooc.fi/mooc/"
-    while(True):
+    while True:
         username = input("Username: ")
         password = getpass.getpass("Password: ")
         # wow, such security
@@ -328,8 +317,8 @@ def configure():
                                        'utf-8')).decode("utf-8")
         try:
             api.configure(server, token)
-        except Exception as e:  # ToDo: Better exception
-            raise e
+        except APIError as e:
+            print(e)
             if yn_prompt("Retry authentication"):
                 continue
             exit()
@@ -337,17 +326,16 @@ def configure():
     select(course=True)
 
 
-@needs_a_course
-def selpath():
-    sel = Course.get_selected()
+@selected_course
+def select_a_path(course):
     defpath = os.path.join(os.path.expanduser("~"),
                            "tmc",
-                           sel.name)
+                           course.name)
     path = input("File download path [{0}]: ".format(defpath))
     if len(path) == 0:
         path = defpath
-    sel.path = path
-    sel.save()
+    course.path = path
+    course.save()
     ret = custom_prompt("Download exercises R: Remaining A: All N: None",
                         ["r", "a", "n"],
                         "r")
@@ -363,7 +351,8 @@ def version():
     """
     Prints the version and exits.
     """
-    print("tmc.py version {0}".format(VERSION))
+    from tmc import version
+    print("tmc.py version {0}".format(version))
     print("Copyright 2014 Juhani Imberg")
 
 
@@ -371,7 +360,11 @@ def main():
     parser = argh.ArghParser()
     parser.add_commands([select, update, download, test, submit, next, resetdb,
                          configure, version, listall, run])
-    parser.dispatch()
+    try:
+        parser.dispatch()
+    except TMCError as e:
+        print(e)
+        exit(-1)
 
 
 if __name__ == "__main__":

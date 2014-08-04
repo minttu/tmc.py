@@ -11,17 +11,18 @@ if sys.version_info < (3, 2, 0):
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+exec(read('tmc/version.py'))
 
 setup(
     name='tmc',
-    version='0.3.1',
+    version=__version__,
     description='TestMyCode client',
     long_description=read("README.md"),
     author='Juhani Imberg',
     author_email='juhani@imberg.com',
     url='http://github.com/JuhaniImberg/tmc.py/',
     license='MIT',
-    packages=['tmc'],
+    packages=['tmc', 'tmc.tests'],
     entry_points={
         'console_scripts': [
             'tmc = tmc.__main__:main',
