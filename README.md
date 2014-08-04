@@ -17,7 +17,7 @@ installation
 usage
 ----
 
-(See here)[https://JuhaniImberg.github.io/tmc.py/]
+[See here](https://JuhaniImberg.github.io/tmc.py/)
 
 example
 -------
