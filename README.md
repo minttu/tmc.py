@@ -45,6 +45,10 @@ Submit the current exercise or a exercise with the id. If `--paste` is set the s
 
 Go to the next exercise.
 
+#### `tmc previous`
+
+Go to the previous exercise.
+
 #### `tmc run command`
 
 Executes `command exercise-path`. For example `tmc run gvim` would run

@@ -26,20 +26,15 @@ class API:
         }
 
     def db_configure(self):
-        try:
-            url = Config.get_value("url")
-            token = Config.get_value("token")
-            self.configure(url, token)
-        except Exception:
-            pass  # print(e)
+        url = Config.get_value("url")
+        token = Config.get_value("token")
+        self.configure(url, token)
 
     def configure(self, url, token):
         self.server_url = url
         self.auth_header = {"Authorization": "Basic {0}".format(token)}
         self.configured = True
         self.tried_configuration = True
-
-        self.make_request("courses.json")
 
         Config.set("url", url)
         Config.set("token", token)

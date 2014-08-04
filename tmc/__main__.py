@@ -331,8 +331,10 @@ def configure():
         # wow, such security
         token = base64.b64encode(bytes("{0}:{1}".format(username, password),
                                        'utf-8')).decode("utf-8")
+
+        api.configure(server, token)
         try:
-            api.configure(server, token)
+            api.make_request("courses.json")
         except APIError as e:
             print(e)
             if yn_prompt("Retry authentication"):
