@@ -362,9 +362,9 @@ def select_a_path(course):
                         ["r", "a", "n"],
                         "r")
     if ret == "a":
-        download("all")
+        download(all=True)
     elif ret == "r":
-        download("remaining")
+        download()
     else:
         print("You can download the exercises with `tmc download --all`")
 
