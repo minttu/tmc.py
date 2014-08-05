@@ -5,7 +5,9 @@ from subprocess import Popen, PIPE
 from tmc.spinner import SpinnerDecorator
 from tmc.errors import MissingProgram, NoSuitableTestFound, NotDownloaded
 
+
 class TestResult(object):
+
     def __init__(self, success=True, error=""):
         self.success = success
         self.error = error
@@ -31,6 +33,7 @@ class BaseTest(object):
         :return: returncode, stdout, stderr
         """
         out, err, code = "", "", -1
+
         @SpinnerDecorator("Results:", waitmsg="Testing with " + self.name)
         def inner():
             ret = Popen(params, stdout=PIPE, stderr=PIPE, cwd=exercise.path())
@@ -60,6 +63,7 @@ class BaseTest(object):
         :return: TestResult
         """
         raise NotImplementedError()
+
 
 def test(exercise):
     if not os.path.isdir(exercise.path()):

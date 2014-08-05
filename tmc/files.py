@@ -2,13 +2,9 @@ import zipfile
 import os
 import sys
 from io import BytesIO
-from glob import glob
-import subprocess
-import xml.etree.ElementTree as ET
 import time
 
-from tmc.errors import (APIError, TMCError, NotDownloaded, MissingProgram,
-                        WrongExerciseType)
+from tmc.errors import APIError, TMCError, NotDownloaded, WrongExerciseType
 from tmc.spinner import SpinnerDecorator
 from tmc.models import Exercise
 from tmc.tests.basetest import test
