@@ -4,12 +4,12 @@ import time
 import zipfile
 from io import BytesIO
 
+from tmc import api
 from tmc.errors import APIError, NotDownloaded, TMCError, WrongExerciseType
 from tmc.ui.spinner import Spinner
-from tmc import api
 
 
-def download_file(exercise, force=False, update_java=False):
+def download_exercise(exercise, force=False, update_java=False):
     course = exercise.get_course()
     outpath = os.path.join(course.path)
     realoutpath = exercise.path()
@@ -20,7 +20,7 @@ def download_file(exercise, force=False, update_java=False):
         exercise.save()
         if update_java:
             try:
-                self.modify_java_target(exercise)
+                modify_java_target(exercise)
             except TMCError:
                 pass
         return
@@ -41,7 +41,7 @@ def download_file(exercise, force=False, update_java=False):
 
     if update_java:
         try:
-            self.modify_java_target(exercise)
+            modify_java_target(exercise)
         except WrongExerciseType:
             pass
 
@@ -61,7 +61,7 @@ def modify_java_target(exercise, old="1.6", new="1.7"):
     print("Changed Java target from {} to {}".format(old, new))
 
 
-def submit(exercise, request_review=False, pastebin=False):
+def submit_exercise(exercise, request_review=False, pastebin=False):
     outpath = exercise.path()
     print("{} -> {}".format(exercise.menuname(), "TMC Server"))
     outpath = os.path.join(outpath, "src")

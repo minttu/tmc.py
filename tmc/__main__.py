@@ -9,10 +9,12 @@ from subprocess import DEVNULL, Popen
 import argh
 import peewee
 from argh.decorators import aliases, arg
-from tmc import api, db, files
+from tmc import api
+from tmc.version import __version__
+from tmc.files import download_exercise, submit_exercise
 from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
                         NoSuchCourse, NoSuchExercise, TMCError)
-from tmc.models import Config, Course, Exercise
+from tmc.models import Config, Course, Exercise, reset_db
 from tmc.ui.menu import Menu
 from tmc.ui.prompt import custom_prompt, yn_prompt
 from tmc.ui.spinner import Spinner
@@ -43,7 +45,7 @@ def resetdb():
     print("This won't remove any of your files,",
           "but instead the local database that tracks your progress.")
     if yn_prompt("Reset database", False):
-        db.reset()
+        reset_db()
         print("Database resetted. You will need to tmc configure again.")
 
 
@@ -115,9 +117,9 @@ def download(course, id=None, all=False, force=False, upgrade=False):
     """
 
     def dl(id):
-        files.download_file(Exercise.get(Exercise.tid == id),
-                            force=force,
-                            update_java=upgrade)
+        download_exercise(Exercise.get(Exercise.tid == id),
+                          force=force,
+                          update_java=upgrade)
 
     if all:
         for exercise in list(course.exercises):
@@ -161,14 +163,14 @@ def submit(course, id=None, pastebin=False, review=False):
     Submit the selected exercise to the server.
     """
     if id is not None:
-        files.submit(Exercise.byid(id),
-                     pastebin=pastebin,
-                     request_review=review)
+        submit_exercise(Exercise.byid(id),
+                        pastebin=pastebin,
+                        request_review=review)
     else:
         sel = Exercise.get_selected()
         if not sel:
             raise NoExerciseSelected()
-        files.submit(sel, pastebin=pastebin, request_review=review)
+        submit_exercise(sel, pastebin=pastebin, request_review=review)
 
 
 @aliases("sel")
@@ -331,7 +333,7 @@ def configure():
         sure = input("Override old configuration [y/N]: ")
         if sure.upper() != "Y":
             return
-    db.reset()
+    reset_db()
     server = input("Server url [https://tmc.mooc.fi/mooc/]: ")
     if len(server) == 0:
         server = "https://tmc.mooc.fi/mooc/"
@@ -379,8 +381,7 @@ def version():
     """
     Prints the version and exits.
     """
-    from tmc import version
-    print("tmc.py version {0}".format(version))
+    print("tmc.py version {0}".format(__version__))
     print("Copyright 2014 Juhani Imberg")
 
 

@@ -145,18 +145,16 @@ class Config(BaseModel):
             return False
 
 
-class DB(object):
+def init_db():
+    Course.create_table(fail_silently=True)
+    Exercise.create_table(fail_silently=True)
+    Config.create_table(fail_silently=True)
 
-    def __init__(self):
-        self.init()
+init_db()
 
-    def init(self):
-        Course.create_table(fail_silently=True)
-        Exercise.create_table(fail_silently=True)
-        Config.create_table(fail_silently=True)
 
-    def reset(self):
-        Course.drop_table()
-        Exercise.drop_table()
-        Config.drop_table()
-        self.init()
+def reset_db():
+    Course.drop_table()
+    Exercise.drop_table()
+    Config.drop_table()
+    init_db()
