@@ -3,7 +3,7 @@ import sys
 from subprocess import PIPE, Popen
 
 from tmc.errors import MissingProgram, NoSuitableTestFound, NotDownloaded
-from tmc.spinner import SpinnerDecorator
+from tmc.ui.spinner import Spinner
 
 
 class TestResult(object):
@@ -12,7 +12,7 @@ class TestResult(object):
         self.success = success
         self.error = error
 
-    def print(self):
+    def format(self):
         if len(self.error) > 0:
             sys.stderr.write("\033[31m{}\033[0m".format(self.error))
         if not self.success:
@@ -34,7 +34,7 @@ class BaseTest(object):
         """
         out, err, code = "", "", -1
 
-        @SpinnerDecorator("Results:", waitmsg="Testing with " + self.name)
+        @Spinner.decorate("Results:", waitmsg="Testing with " + self.name)
         def inner():
             ret = Popen(params, stdout=PIPE, stderr=PIPE, cwd=exercise.path())
             out, err = ret.communicate()
@@ -76,4 +76,4 @@ def test(exercise):
             break
     if ret is None:
         raise NoSuitableTestFound()
-    ret.print()
+    ret.format()

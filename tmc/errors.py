@@ -1,23 +1,26 @@
 class TMCError(RuntimeError):
 
-    def __init__(self):
-        self.value = "Undefined TMC Error occured!"
+    def __init__(self, value="Undefined TMC Error occured!"):
+        self.value = value
 
     def __str__(self):
         return "\033[31m{0}\033[0m".format(self.value)
 
 
 class WrongExerciseType(TMCError):
+
     def __init__(self, type):
         self.value = "Exercise wasn't of the type \"{}\".".format(type)
 
 
 class NoSuitableTestFound(TMCError):
+
     def __init__(self):
         self.value = "No suitable test was found for the exercise."
 
 
 class MissingProgram(TMCError):
+
     def __init__(self, program):
         self.value = "You don't seem to have {} installed.".format(program)
 

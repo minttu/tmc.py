@@ -34,25 +34,25 @@ class Spinner(threading.Thread):
         sys.stdout.flush()
         self.index = 0
 
-
-def SpinnerDecorator(msg="", waitmsg="Please wait"):
-    def Decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            spin = Spinner(msg=msg, waitmsg=waitmsg)
-            spin.start()
-            a = None
-            try:
-                a = func(*args, **kwargs)
-            except Exception as e:
-                spin.msg = "Something went wrong: "
+    @staticmethod
+    def decorate(msg="", waitmsg="Please wait"):
+        def Decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                spin = Spinner(msg=msg, waitmsg=waitmsg)
+                spin.start()
+                a = None
+                try:
+                    a = func(*args, **kwargs)
+                except Exception as e:
+                    spin.msg = "Something went wrong: "
+                    spin.stopspin()
+                    spin.join()
+                    raise e
                 spin.stopspin()
                 spin.join()
-                raise e
-            spin.stopspin()
-            spin.join()
-            return a
+                return a
 
-        return wrapper
+            return wrapper
 
-    return Decorator
+        return Decorator

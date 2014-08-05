@@ -9,12 +9,14 @@ from subprocess import DEVNULL, Popen
 import argh
 import peewee
 from argh.decorators import aliases, arg
-from tmc import api, db, files, menu
+from tmc import api, db, files
 from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
                         NoSuchCourse, NoSuchExercise, TMCError)
 from tmc.models import Config, Course, Exercise
-from tmc.prompt import custom_prompt, yn_prompt
-from tmc.spinner import SpinnerDecorator
+from tmc.ui.menu import Menu
+from tmc.ui.prompt import custom_prompt, yn_prompt
+from tmc.ui.spinner import Spinner
+from tmc.tests.basetest import test as run_test
 
 
 def selected_course(func):
@@ -52,7 +54,7 @@ def update(course=False):
     Update the metadata of courses and or exercises from server.
     """
     if course:
-        @SpinnerDecorator("Updated course metadata.",
+        @Spinner.decorate("Updated course metadata.",
                           waitmsg="Updating course metadata.")
         def update_course():
             for course in api.get_courses():
@@ -69,7 +71,7 @@ def update(course=False):
     else:
         selected = Course.get_selected()
 
-        @SpinnerDecorator("Updated exercise metadata.",
+        @Spinner.decorate("Updated exercise metadata.",
                           waitmsg="Updating exercise metadata.")
         def update_exercise():
             for exercise in api.get_exercises(selected.tid):
@@ -113,7 +115,9 @@ def download(course, id=None, all=False, force=False, upgrade=False):
     """
 
     def dl(id):
-        files.download_file(id, force=force, update_java=upgrade)
+        files.download_file(Exercise.get(Exercise.tid == id),
+                            force=force,
+                            update_java=upgrade)
 
     if all:
         for exercise in list(course.exercises):
@@ -136,13 +140,13 @@ def test(course, id=None):
     Run tests on the selected exercise.
     """
     if id is not None:
-        if not files.test(int(id)):
+        if not run_test(Exercise.byid(id)):
             exit(-1)
     else:
         sel = Exercise.get_selected()
         if not sel:
             raise NoExerciseSelected()
-        files.test(sel.tid)
+        run_test(sel)
 
 
 @aliases("su")
@@ -157,12 +161,14 @@ def submit(course, id=None, pastebin=False, review=False):
     Submit the selected exercise to the server.
     """
     if id is not None:
-        files.submit(int(id), pastebin=pastebin, request_review=review)
+        files.submit(Exercise.byid(id),
+                     pastebin=pastebin,
+                     request_review=review)
     else:
         sel = Exercise.get_selected()
         if not sel:
             raise NoExerciseSelected()
-        files.submit(sel.tid, pastebin=pastebin, request_review=review)
+        files.submit(sel, pastebin=pastebin, request_review=review)
 
 
 @aliases("sel")
@@ -184,7 +190,7 @@ def select(course=False, id=None):
             start_index = og.tid
         ret = id
         if not ret:
-            ret = menu.launch("Select a course",
+            ret = Menu.launch("Select a course",
                               Course.select().execute(),
                               start_index)
         if ret != -1:
@@ -221,7 +227,7 @@ def select(course=False, id=None):
         sel = Course.get_selected()
         ret = id
         if not ret:
-            ret = menu.launch("Select an exercise",
+            ret = Menu.launch("Select an exercise",
                               Exercise.select().where(
                                   Exercise.course == sel.id).execute(),
                               start_index)

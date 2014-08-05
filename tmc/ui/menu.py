@@ -93,12 +93,12 @@ class Menu:
         panel.update_panels()
         curses.doupdate()
 
-
-def launch(title, items, start):
-    if start != 0:
-        for index, item in enumerate(items):
-            if item.tid == start:
-                start = index
-                break
-    curses.wrapper(Menu, title, items, start)
-    return ret
+    @staticmethod
+    def launch(title, items, start):
+        if start != 0:
+            for index, item in enumerate(items):
+                if item.tid == start:
+                    start = index
+                    break
+        curses.wrapper(Menu, title, items, start)
+        return ret

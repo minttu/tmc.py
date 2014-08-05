@@ -5,9 +5,7 @@ import zipfile
 from io import BytesIO
 
 from tmc.errors import APIError, NotDownloaded, TMCError, WrongExerciseType
-from tmc.models import Exercise
-from tmc.spinner import SpinnerDecorator
-from tmc.tests.basetest import test
+from tmc.ui.spinner import Spinner
 
 
 class Files:
@@ -15,14 +13,11 @@ class Files:
     def __init__(self, api):
         self.api = api
 
-    def download_file(self, id, force=False, update_java=False):
-        exercise = Exercise.get(Exercise.tid == id)
+    def download_file(self, exercise, force=False, update_java=False):
         course = exercise.get_course()
         outpath = os.path.join(course.path)
         realoutpath = exercise.path()
-        print("{0}exercises/{1}.zip -> {2}".format(self.api.server_url,
-                                                   exercise.tid,
-                                                   realoutpath))
+        print("{} -> {}".format(exercise.menuname(), realoutpath))
         if not force and os.path.isdir(realoutpath):
             print("Already downloaded, skipping.")
             exercise.is_downloaded = True
@@ -34,9 +29,9 @@ class Files:
                     pass
             return
 
-        @SpinnerDecorator("Downloaded.", waitmsg="Downloading.")
-        def inner(id):
-            req = self.api.get_zip_stream(id)
+        @Spinner.decorate("Downloaded.", waitmsg="Downloading.")
+        def inner(exercise):
+            req = self.api.get_zip_stream(exercise)
             tmpfile = BytesIO()
             for block in req.iter_content(1024):
                 if not block:
@@ -46,7 +41,7 @@ class Files:
             zipfp.extractall(outpath)
             exercise.is_downloaded = True
             exercise.save()
-        inner(id)
+        inner(exercise)
 
         if update_java:
             try:
@@ -68,15 +63,9 @@ class Files:
             fp.write("".join(lines))
         print("Changed Java target from {} to {}".format(old, new))
 
-    def test(self, id):
-        test(Exercise.get(Exercise.tid == id))
-
-    def submit(self, id, request_review=False, pastebin=False):
-        exercise = Exercise.get(Exercise.tid == id)
+    def submit(self, exercise, request_review=False, pastebin=False):
         outpath = exercise.path()
-        print("{0} -> {1}exercises/{2}.json".format(outpath,
-                                                    self.api.server_url,
-                                                    id))
+        print("{} -> {}".format(exercise.menuname(), "TMC Server"))
         outpath = os.path.join(outpath, "src")
         if not os.path.isdir(outpath):
             raise NotDownloaded()
@@ -89,7 +78,7 @@ class Files:
         if pastebin:
             params["paste"] = "wolololo"
 
-        @SpinnerDecorator("Submission has been sent.",
+        @Spinner.decorate("Submission has been sent.",
                           waitmsg="Sending submission.")
         def inner():
             tmpfile = BytesIO()
@@ -104,7 +93,7 @@ class Files:
                                 zipfile.ZIP_DEFLATED)
             zipfp.close()
             try:
-                data = self.api.send_zip(id, tmpfile.getvalue(), params)
+                data = self.api.send_zip(exercise, tmpfile.getvalue(), params)
             except Exception as e:
                 return e
             if data:
@@ -117,8 +106,7 @@ class Files:
             url = resp["submission_url"]
             submission_id = int(url.split(".json")[0].split("submissions/")[1])
 
-            @SpinnerDecorator("Results:",
-                              "Waiting for results.")
+            @Spinner.decorate("Results:", "Waiting for results.")
             def inner():
                 while True:
                     try:
@@ -139,7 +127,7 @@ class Files:
                         sys.stderr.write("{0}:\n  {1}\n".format(
                             testcase["name"], testcase["message"]))
                 sys.stderr.write("".join(["\033[33mFor better details run `tmc"
-                                          " test --id ", str(id),
+                                          " test --id ", str(exercise.tid),
                                           "`\033[0m\n"]))
                 exit(-1)
             elif data["status"] == "ok":

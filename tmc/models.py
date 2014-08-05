@@ -83,6 +83,10 @@ class Exercise(BaseModel):
             raise NoExerciseSelected()
         return first
 
+    @staticmethod
+    def byid(id):
+        return Exercise.get(Exercise.tid == int(id))
+
     def __str__(self):
         return "Exercise \"{}\" (ID {})".format(self.name, self.tid)
 
