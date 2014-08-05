@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-import argh
-from argh.decorators import aliases, arg
-import getpass
 import base64
+import getpass
 import os
 from functools import wraps
-from subprocess import Popen, DEVNULL
-from tmc.errors import (TMCError, NoCourseSelected, NoExerciseSelected,
-                        NoSuchCourse, NoSuchExercise, APIError)
-from tmc.prompt import yn_prompt, custom_prompt
-from tmc.spinner import SpinnerDecorator
-from tmc import db, api, files, menu
-from tmc.models import Course, Exercise, Config
+from subprocess import DEVNULL, Popen
 
+import argh
 import peewee
+from argh.decorators import aliases, arg
+from tmc import api, db, files, menu
+from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
+                        NoSuchCourse, NoSuchExercise, TMCError)
+from tmc.models import Config, Course, Exercise
+from tmc.prompt import custom_prompt, yn_prompt
+from tmc.spinner import SpinnerDecorator
 
 
 def selected_course(func):

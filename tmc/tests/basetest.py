@@ -1,9 +1,9 @@
 import os
 import sys
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
-from tmc.spinner import SpinnerDecorator
 from tmc.errors import MissingProgram, NoSuitableTestFound, NotDownloaded
+from tmc.spinner import SpinnerDecorator
 
 
 class TestResult(object):

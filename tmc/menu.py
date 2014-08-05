@@ -1,6 +1,6 @@
 import curses
-from curses import panel
 import math
+from curses import panel
 
 ret = -1
 

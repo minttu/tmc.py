@@ -1,7 +1,7 @@
 import functools
-import time
-import threading
 import sys
+import threading
+import time
 
 
 class Spinner(threading.Thread):

@@ -1,6 +1,7 @@
 import os
-from peewee import (Model, CharField, BooleanField, DateField, IntegerField,
-                    ForeignKeyField, SqliteDatabase)
+
+from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
+                    IntegerField, Model, SqliteDatabase)
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
 sqlite = SqliteDatabase(

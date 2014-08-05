@@ -1,6 +1,6 @@
+import xml.etree.ElementTree as ET
 from glob import glob
 from os import path
-import xml.etree.ElementTree as ET
 
 from tmc.tests.basetest import BaseTest, TestResult
 

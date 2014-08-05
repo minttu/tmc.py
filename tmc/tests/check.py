@@ -1,5 +1,5 @@
-from os import path
 import xml.etree.ElementTree as ET
+from os import path
 
 from tmc.tests.basetest import BaseTest, TestResult
 

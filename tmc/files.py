@@ -1,12 +1,12 @@
-import zipfile
 import os
 import sys
-from io import BytesIO
 import time
+import zipfile
+from io import BytesIO
 
-from tmc.errors import APIError, TMCError, NotDownloaded, WrongExerciseType
-from tmc.spinner import SpinnerDecorator
+from tmc.errors import APIError, NotDownloaded, TMCError, WrongExerciseType
 from tmc.models import Exercise
+from tmc.spinner import SpinnerDecorator
 from tmc.tests.basetest import test
 
 
