@@ -45,6 +45,7 @@ def main():
         notifier = pyinotify.Notifier(wm)
         wm.add_watch('data.yaml', pyinotify.IN_CLOSE_WRITE)
         wm.add_watch('template.html', pyinotify.IN_CLOSE_WRITE)
+        wm.add_watch('docs.css', pyinotify.IN_CLOSE_WRITE)
         on_loop_func = functools.partial(render)
         notifier.loop(daemonize=False, callback=on_loop_func)
     else:

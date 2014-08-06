@@ -6,6 +6,23 @@ commands:
       - init
     description: >
       Set the server, user credentials and selected course.
+    optional_arguments:
+      - name: --server
+        short: -s
+        argument: URI
+        description: Server to be used.
+      - name: --username
+        short: -u
+        argument: USERNAME
+        description: Username to be used.
+      - name: --password
+        short: -p
+        argument: PASSWORD
+        description: Password to be used.
+      - name: --id
+        short: -i
+        argument: ID
+        description: Course ID to be used.
   - name: select
     aliases:
       - sel
@@ -104,4 +121,17 @@ commands:
       Executes `COMMAND exercise-path`. For example `tmc run gvim` would run
       `gvim /home/x/tmc/k2014-algomooc/viikko1/01.1.Kertoma` which would open
       `gvim` in that folder.
-
+  - name: listall
+    aliases:
+      - ls
+    description: >
+      Lists all exercises in the currently selected course.
+  - name: version
+    description: >
+      Prints the tmc.py version.
+  - name: current
+    aliases:
+      - cur
+    description: >
+      Prints information about the currently selected exercise.
+version: 0.3.3

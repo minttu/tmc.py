@@ -17,14 +17,18 @@
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-xs-3">
+            <div class="hidden-xs col-sm-3">
                 <nav class="nav affix hidden-xs">
                     <div class="list-group">
                         <a class="list-group-item heading" href="#commands">Commands</a>
                         
                         <a class="list-group-item" href="#configure">configure</a>
                         
+                        <a class="list-group-item" href="#current">current</a>
+                        
                         <a class="list-group-item" href="#download">download</a>
+                        
+                        <a class="list-group-item" href="#listall">listall</a>
                         
                         <a class="list-group-item" href="#next">next</a>
                         
@@ -42,14 +46,16 @@
                         
                         <a class="list-group-item" href="#update">update</a>
                         
+                        <a class="list-group-item" href="#version">version</a>
+                        
                     </div>
                 </nav>
             </div>
-            <div class="col-xs-9">
+            <div class="col-xs-12 col-sm-9 content">
                 <h1>tmc.py docs <a href="https://github.com/JuhaniImberg/tmc.py">GitHub</a></h1>
 
                 <section>
-                    <h2>Commands</h2>
+                    <h2 id="commands">Commands</h2>
                     
                     <article>
                         
@@ -66,7 +72,119 @@
     </h4>
 
                         
+                            <ul class=>
+                            
+                                <li>
+                                    
+    <code>--id</code>
+
+                                    
+                                        
+    <code>ID</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-i</code>
+
+                                        
+                                            
+    <code>ID</code>
+
+                                        
+                                    
+                                    <p>Course ID to be used.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--password</code>
+
+                                    
+                                        
+    <code>PASSWORD</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-p</code>
+
+                                        
+                                            
+    <code>PASSWORD</code>
+
+                                        
+                                    
+                                    <p>Password to be used.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--server</code>
+
+                                    
+                                        
+    <code>URI</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-s</code>
+
+                                        
+                                            
+    <code>URI</code>
+
+                                        
+                                    
+                                    <p>Server to be used.</p>
+                                </li>
+                            
+                                <li>
+                                    
+    <code>--username</code>
+
+                                    
+                                        
+    <code>USERNAME</code>
+
+                                    
+                                    
+                                         or
+                                        
+    <code>-u</code>
+
+                                        
+                                            
+    <code>USERNAME</code>
+
+                                        
+                                    
+                                    <p>Username to be used.</p>
+                                </li>
+                            
+                            </ul>
+                        
                         <p class="description"><p>Set the server, user credentials and selected course.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="current">
+        current
+        
+        
+            
+                <span class="alias">cur</span>
+            
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Prints information about the currently selected exercise.</p></p>
                     </article>
                     
                     <article>
@@ -155,6 +273,22 @@
                             </ul>
                         
                         <p class="description"><p>Download the remaining exercises.</p></p>
+                    </article>
+                    
+                    <article>
+                        
+    <h4 class="name" id="listall">
+        listall
+        
+        
+            
+                <span class="alias">ls</span>
+            
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Lists all exercises in the currently selected course.</p></p>
                     </article>
                     
                     <article>
@@ -424,9 +558,24 @@
                         <p class="description"><p>Update the exercise metadata of the selected course.</p></p>
                     </article>
                     
+                    <article>
+                        
+    <h4 class="name" id="version">
+        version
+        
+        
+    </h4>
+
+                        
+                        <p class="description"><p>Prints the tmc.py version.</p></p>
+                    </article>
+                    
                 </section>
 
-                <footer>Generated by a bunch of files. 2014-08-04 19:46:53.692824</footer>
+                <footer>
+                    tmc.py 0.3.3<br>
+                    Generated by a bunch of files. 2014-08-06 16:17:41.947733
+                </footer>
             </div>
         </div>
     </div>
