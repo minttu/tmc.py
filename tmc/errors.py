@@ -7,6 +7,12 @@ class TMCError(RuntimeError):
         return "\033[31m{0}\033[0m".format(self.value)
 
 
+class TMCExit(TMCError):
+
+    def __init__(self):
+        self.value = "sys.exit"
+
+
 class WrongExerciseType(TMCError):
 
     def __init__(self, type):

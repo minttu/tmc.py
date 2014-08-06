@@ -99,7 +99,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     resp = inner()
     if type(resp) == Exception or type(resp) == APIError:
         sys.stderr.write("\033[31m{0}\033[0m\n".format(resp))
-        exit(-1)
+        return False
     if "submission_url" in resp:
         url = resp["submission_url"]
         submission_id = int(url.split(".json")[0].split("submissions/")[1])
@@ -117,7 +117,8 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         data = inner()
         if type(data) == Exception:
             sys.stderr.write("\033[31m{0}\033[0m".format(data))
-            exit(-1)
+            return False
+        success = True
         if data["status"] == "fail":
             sys.stderr.write("\033[31m")
             for testcase in data["test_cases"]:
@@ -127,7 +128,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
             sys.stderr.write("".join(["\033[33mFor better details run `tmc"
                                       " test --id ", str(exercise.tid),
                                       "`\033[0m\n"]))
-            exit(-1)
+            success = False
         elif data["status"] == "ok":
             print("\033[32mPoints [{0}]\033[0m".format(
                 ", ".join(data["points"])))
@@ -139,3 +140,5 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
             else:
                 print("Requested a review")
         print("URL: " + url.split(".json")[0])
+        if not success:
+            return False

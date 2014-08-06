@@ -16,7 +16,7 @@ class TestResult(object):
         if len(self.error) > 0:
             sys.stderr.write("\033[31m{}\033[0m".format(self.error))
         if not self.success:
-            exit(-1)
+            return False
         sys.stdout.write("\033[32mOK!\033[0m\n")
 
 
@@ -65,7 +65,7 @@ class BaseTest(object):
         raise NotImplementedError()
 
 
-def test(exercise):
+def run_test(exercise):
     if not os.path.isdir(exercise.path()):
         raise NotDownloaded()
     ret = None
@@ -76,4 +76,4 @@ def test(exercise):
             break
     if ret is None:
         raise NoSuitableTestFound()
-    ret.format()
+    return ret.format()

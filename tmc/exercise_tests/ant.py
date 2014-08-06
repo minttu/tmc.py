@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from glob import glob
 from os import path
 
-from tmc.tests.basetest import BaseTest, TestResult
+from tmc.exercise_tests.basetest import BaseTest, TestResult
 
 
 class AntTest(BaseTest):

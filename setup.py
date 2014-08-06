@@ -22,7 +22,7 @@ setup(
     author_email='juhani@imberg.com',
     url='http://github.com/JuhaniImberg/tmc.py/',
     license='MIT',
-    packages=['tmc', 'tmc.tests', 'tmc.ui'],
+    packages=['tmc', 'tmc.exercise_tests', 'tmc.tests', 'tmc.ui'],
     entry_points={
         'console_scripts': [
             'tmc = tmc.__main__:main',

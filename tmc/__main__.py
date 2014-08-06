@@ -3,6 +3,7 @@
 import base64
 import getpass
 import os
+import sys
 from functools import wraps
 from subprocess import DEVNULL, Popen
 
@@ -13,12 +14,12 @@ from tmc import api
 from tmc.version import __version__
 from tmc.files import download_exercise, submit_exercise
 from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
-                        NoSuchCourse, NoSuchExercise, TMCError)
+                        NoSuchCourse, NoSuchExercise, TMCError, TMCExit)
 from tmc.models import Config, Course, Exercise, reset_db
 from tmc.ui.menu import Menu
 from tmc.ui.prompt import custom_prompt, yn_prompt
 from tmc.ui.spinner import Spinner
-from tmc.tests.basetest import test as run_test
+from tmc.exercise_tests.basetest import run_test
 
 
 def selected_course(func):
@@ -34,6 +35,19 @@ def selected_exercise(func):
     def inner(*args, **kwargs):
         exercise = Exercise.get_selected()
         return func(exercise, *args, **kwargs)
+    return inner
+
+
+def false_exit(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        if ret == False:
+            if "TMC_TESTING" in os.environ:
+                raise TMCExit()
+            else:
+                sys.exit(-1)
+        return ret
     return inner
 
 
@@ -120,6 +134,7 @@ def download(course, id=None, all=False, force=False, upgrade=False):
 
 @aliases("skip")
 @selected_course
+@false_exit
 def next(course, num=1):
     """
     Go to the next exercise.
@@ -132,15 +147,14 @@ def next(course, num=1):
     try:
         if sel is None:
             for i in course.exercises:
-                if i.is_downloaded:
-                    sel = i
-                    break
+                sel = i
+                break
         else:
             try:
                 sel = Exercise.get(Exercise.id == sel.id + num)
             except peewee.DoesNotExist:
                 print("There are no more exercises in this course.")
-                exit(-1)
+                return False
     except peewee.InterfaceError:
         # OK. This looks bizzare. It is. It works.
         return next()
@@ -257,36 +271,37 @@ def select(course=False, id=None, auto=False):
 @arg("-r", "--review", default=False, action="store_true",
      help="Request a review for this submission.")
 @selected_course
+@false_exit
 def submit(course, id=None, pastebin=False, review=False):
     """
     Submit the selected exercise to the server.
     """
     if id is not None:
-        submit_exercise(Exercise.byid(id),
-                        pastebin=pastebin,
-                        request_review=review)
+        return submit_exercise(Exercise.byid(id),
+                               pastebin=pastebin,
+                               request_review=review)
     else:
         sel = Exercise.get_selected()
         if not sel:
             raise NoExerciseSelected()
-        submit_exercise(sel, pastebin=pastebin, request_review=review)
+        return submit_exercise(sel, pastebin=pastebin, request_review=review)
 
 
 @aliases("te")
 @arg("-i", "--id", help="Test this ID.")
 @selected_course
+@false_exit
 def test(course, id=None):
     """
     Run tests on the selected exercise.
     """
     if id is not None:
-        if not run_test(Exercise.byid(id)):
-            exit(-1)
+        return run_test(Exercise.byid(id))
     else:
         sel = Exercise.get_selected()
         if not sel:
             raise NoExerciseSelected()
-        run_test(sel)
+        return run_test(sel)
 
 
 @aliases("ls")
@@ -388,7 +403,6 @@ def select_a_path(course, auto=False):
     course.path = path
     course.save()
     if auto:
-        download(all=True)
         return
     ret = custom_prompt("Download exercises R: Remaining A: All N: None",
                         ["r", "a", "n"],
@@ -418,6 +432,23 @@ def main():
     except TMCError as e:
         print(e)
         exit(-1)
+
+
+def run_command(argv):
+    from io import StringIO
+    if type(argv) == str:
+        argv = [argv]
+    parser = argh.ArghParser()
+    parser.add_commands([select, update, download, test, submit, next, current,
+                         previous, resetdb, configure, version, listall, run])
+    sys.stdout = StringIO()
+    sys.stderr = StringIO()
+    exception = None
+    try:
+        parser.dispatch(argv=argv)
+    except Exception as e:
+        exception = e
+    return sys.stdout.getvalue(), sys.stderr.getvalue(), exception
 
 
 if __name__ == "__main__":
