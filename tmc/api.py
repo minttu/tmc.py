@@ -4,7 +4,7 @@ from tmc.errors import APIError
 from tmc.models import Config
 
 
-# from tmc import version
+# from tmc.version import __version__
 
 
 class API:
@@ -21,7 +21,7 @@ class API:
         """ self.params = {
             "api_version": self.api_version,
             "client": "tmc.py",
-            "client_version": version
+            "client_version": __version__
         }"""
         self.params = {
             "api_version": self.api_version
