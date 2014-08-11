@@ -112,7 +112,9 @@ class Exercise(BaseModel):
                     realname += " " + c
             else:
                 realname += c
-        return rest.replace("_", " - ") + " - " + realname
+        if len(realname) > 0:
+            return rest.replace("_", " - ") + " - " + realname
+        return self.name
 
 
 class Config(BaseModel):
