@@ -5,7 +5,14 @@ import getpass
 import os
 import sys
 from functools import wraps
-from subprocess import DEVNULL, Popen
+from subprocess import Popen
+
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    import os
+    DEVNULL = open(os.devnull, 'wb')
+
 
 import argh
 import peewee
