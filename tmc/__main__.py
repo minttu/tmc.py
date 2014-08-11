@@ -79,6 +79,7 @@ def configure(server=None, username=None, password=None, id=None):
             server = "https://tmc.mooc.fi/mooc/"
         if not server.endswith('/'):
             server += '/'
+        print("Using URL: '{0}'".format(server))
     while True:
         if not username:
             username = input("Username: ")
