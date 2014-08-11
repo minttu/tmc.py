@@ -17,7 +17,7 @@ setup(
     name='tmc',
     version=__version__,
     description='TestMyCode client',
-    long_description=read("README.md"),
+    long_description=read("README.rst"),
     author='Juhani Imberg',
     author_email='juhani@imberg.com',
     url='http://github.com/JuhaniImberg/tmc.py/',
@@ -36,6 +36,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4"
     ],

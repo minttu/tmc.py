@@ -35,5 +35,9 @@ class AntTest(BaseTest):
                 for line in out.split("\n"):
                     if "[javac] " in line:
                         ret.error += line.split("[javac] ")[1] + "\n"
+            # If there still is no error, let's just hope theres something in
+            # stderr to tell (such as that javac not found)
+            if len(ret.error) == 0:
+                ret.error = err
 
         return ret
