@@ -27,6 +27,23 @@ class API:
             "api_version": self.api_version
         }
 
+    def __ensure_configured(f):
+        ''' 
+            Ensures that we are properly configured before making
+            any requests to server
+
+            API Internal use only.
+        '''
+        from functools import wraps
+        @wraps(f)
+        def wr(inst, *args, **kwargs):
+            if not inst.tried_configuration:
+                inst.db_configure()
+            if not inst.configured:
+                raise APIError("API needs to be configured before use!")
+            return f(inst, *args, **kwargs)
+        return wr
+
     def db_configure(self):
         url = Config.get_value("url")
         token = Config.get_value("token")
@@ -41,11 +58,8 @@ class API:
         Config.set("url", url)
         Config.set("token", token)
 
+    @__ensure_configured
     def make_request(self, slug, timeout=10):
-        if not self.tried_configuration:
-            self.db_configure()
-        if not self.configured:
-            raise APIError("API needs to be configured before use!")
         req = requests.get("{0}{1}".format(self.server_url, slug),
                            headers=self.auth_header,
                            params=self.params,
@@ -77,22 +91,16 @@ class API:
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
 
+    @__ensure_configured
     def get_zip_stream(self, exercise):
-        if not self.tried_configuration:
-            self.db_configure()
-        if not self.configured:
-            raise APIError("API needs to be configured before use!")
         return requests.get("{0}exercises/{1}.zip".format(self.server_url,
                                                           exercise.tid),
                             stream=True,
                             headers=self.auth_header,
                             params=self.params)
 
+    @__ensure_configured
     def send_zip(self, exercise, file, params):
-        if not self.tried_configuration:
-            self.db_configure()
-        if not self.configured:
-            raise APIError("API needs to be configured before use!")
         return self.get_json(
             requests.post(
                 "{0}exercises/{1}/submissions.json".format(
