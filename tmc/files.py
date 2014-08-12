@@ -84,22 +84,12 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         for root, dirs, files in os.walk(outpath):
             for file in files:
                 zipfp.write(os.path.join(root, file),
-                            os.path.relpath(
-                                os.path.join(
-                                    root, file), os.path.join(
-                                        outpath, '..')),
+                            os.path.relpath(os.path.join(root, file),
+                                            os.path.join(outpath, '..')),
                             zipfile.ZIP_DEFLATED)
         zipfp.close()
-        try:
-            data = api.send_zip(exercise, tmpfile.getvalue(), params)
-        except Exception as e:
-            return e
-        if data:
-            return data
+        return api.send_zip(exercise, tmpfile.getvalue(), params)
     resp = inner()
-    if type(resp) == Exception or type(resp) == APIError:
-        sys.stderr.write("\033[31m{0}\033[0m\n".format(resp))
-        return False
     if "submission_url" in resp:
         url = resp["submission_url"]
         submission_id = int(url.split(".json")[0].split("submissions/")[1])
@@ -107,31 +97,24 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         @Spinner.decorate("Results:", "Waiting for results.")
         def inner():
             while True:
-                try:
-                    data = api.get_submission(submission_id)
-                except Exception as e:
-                    return e
+                data = api.get_submission(submission_id)
                 if data:
                     return data
                 time.sleep(1)
         data = inner()
-        if type(data) == Exception:
-            sys.stderr.write("\033[31m{0}\033[0m".format(data))
-            return False
         success = True
         if data["status"] == "fail":
             sys.stderr.write("\033[31m")
             for testcase in data["test_cases"]:
                 if not testcase["successful"]:
-                    sys.stderr.write("{0}:\n  {1}\n".format(
-                        testcase["name"], testcase["message"]))
+                    sys.stderr.write("{}:\n  {}\n".format(testcase["name"],
+                                                          testcase["message"]))
             sys.stderr.write("".join(["\033[33mFor better details run `tmc"
                                       " test --id ", str(exercise.tid),
                                       "`\033[0m\n"]))
             success = False
         elif data["status"] == "ok":
-            print("\033[32mPoints [{0}]\033[0m".format(
-                ", ".join(data["points"])))
+            print("\033[32mPoints [" + ", ".join(data["points"]) + "]\033[0m")
         if "paste_url" in data:
             print("Pastebin: " + data["paste_url"])
         if data.get("requests_review", False):
