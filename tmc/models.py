@@ -127,16 +127,12 @@ class Config(BaseModel):
 
     @staticmethod
     def set(name, value):
-        old = None
         try:
             old = Config.get(Config.name == name)
-        except Config.DoesNotExist:
-            old = None
-        if old is None:
-            Config.create(name=name, value=value)
-        else:
             old.value = value
             old.save()
+        except Config.DoesNotExist:
+            Config.create(name=name, value=value)
 
     @staticmethod
     def get_value(name):
