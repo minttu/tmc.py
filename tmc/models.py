@@ -6,7 +6,7 @@ from tmc.errors import NoCourseSelected, NoExerciseSelected
 
 # SqliteDatabase will fail if there is no ~/.config
 if not os.path.isdir(os.path.join(os.path.expanduser("~"), ".config")):
-    os.mkdir(os.path.join(os.path.expanduser("~"), ".config"), 0700)
+    os.mkdir(os.path.join(os.path.expanduser("~"), ".config"), 0o700)
 
 sqlite = SqliteDatabase(
     os.path.join(os.path.expanduser("~"), ".config", "tmc.db")
