@@ -74,11 +74,29 @@ def configure(server=None, username=None, password=None, id=None):
                 return
     reset_db()
     if not server:
-        server = input("Server url [https://tmc.mooc.fi/mooc/]: ")
-        if len(server) == 0:
-            server = "https://tmc.mooc.fi/mooc/"
-        if not server.endswith('/'):
-            server += '/'
+        while True:
+            server = input("Server url [https://tmc.mooc.fi/mooc/]: ").strip()
+            if len(server) == 0:
+                server = "https://tmc.mooc.fi/mooc/"
+            if not server.endswith('/'):
+                server += '/'
+            if not (server.startswith("http://")
+                    or server.startswith("https://")):
+                ret = custom_prompt(
+                    "Server should start with http:// or https://\n" +
+                    "R: Retry, H: Assume http://, S: Assume https://",
+                    ["r", "h", "s"], "r")
+                if ret == "r":
+                    continue
+                # Strip previous schema
+                if "://" in server:
+                    server = server.split("://")[1]
+                if ret == "h":
+                    server = "http://" + server
+                elif ret == "s":
+                    server = "https://" + server
+            break
+
         print("Using URL: '{0}'".format(server))
     while True:
         if not username:
@@ -407,9 +425,14 @@ def select_a_path(course, auto=False):
     if auto:
         path = defpath
     else:
-        path = input("File download path [{0}]: ".format(defpath))
+        path = input("File download path [{0}]: ".format(defpath)).strip()
     if len(path) == 0:
         path = defpath
+    path = os.path.expanduser(path)
+    # I guess we are looking at a relative path
+    if not path.startswith("/"):
+        path = os.path.join(os.getcwd(), path)
+    print("Using path: '{}'".format(path))
     course.path = path
     course.save()
     if auto:
