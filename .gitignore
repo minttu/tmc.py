@@ -7,3 +7,5 @@ eggs/
 *.egg
 *.json
 .idea/
+.*.swp
+.*.swo
