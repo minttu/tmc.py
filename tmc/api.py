@@ -64,6 +64,9 @@ class API:
         Config.set("url", url)
         Config.set("token", token)
 
+    def test_connection(self):
+        self.make_request("courses.json")
+
     @__ensure_configured
     def make_request(self, slug, timeout=10):
         url = "{0}{1}".format(self.server_url, slug)
