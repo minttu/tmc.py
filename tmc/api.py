@@ -33,23 +33,6 @@ class API:
         self.get = partial(self._do_request, "GET")
         self.post = partial(self._do_request, "POST")
 
-    def _ensure_configured(f):
-        ''' 
-            Ensures that we are properly configured before making
-            any requests to server
-
-            API Internal use only.
-        '''
-        from functools import wraps
-        @wraps(f)
-        def wr(inst, *args, **kwargs):
-            if not inst.tried_configuration:
-                inst.db_configure()
-            if not inst.configured:
-                raise APIError("API needs to be configured before use!")
-            return f(inst, *args, **kwargs)
-        return wr
-
     def db_configure(self):
         url = Config.get_value("url")
         token = Config.get_value("token")
@@ -67,7 +50,6 @@ class API:
     def test_connection(self):
         self.make_request("courses.json")
 
-    @_ensure_configured
     def make_request(self, slug, timeout=10):
         resp = self.get(slug, timeout=timeout)
         return self._to_json(resp)
@@ -82,13 +64,11 @@ class API:
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
 
-    @_ensure_configured
     def get_zip_stream(self, exercise):
         slug = "exercises/{0}.zip".format(exercise.tid)
         resp = self.get(slug, stream=True)
         return resp
 
-    @_ensure_configured
     def send_zip(self, exercise, file, params):
         """ 
         Send zipfile to TMC for given exercise
@@ -117,6 +97,11 @@ class API:
         Does HTTP request sending / response validation.
         Prevents RequestExceptions from propagating 
         """ 
+        if not self.tried_configuration:
+            self.db_configure()
+        if not self.configured:
+            raise APIError("API needs to be configured before use!")
+
         url = "{0}{1}".format(self.server_url, slug)
 
         defaults = {"headers": self.auth_header, "params": self.params}
