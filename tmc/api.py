@@ -28,12 +28,12 @@ class API:
         }
 
         # Essentially the same as requests.get and post
-        # but uses __do_request as a single point of entry to
+        # but uses _do_request as a single point of entry to
         # requests library
-        self.get = partial(self.__do_request, "GET")
-        self.post = partial(self.__do_request, "POST")
+        self.get = partial(self._do_request, "GET")
+        self.post = partial(self._do_request, "POST")
 
-    def __ensure_configured(f):
+    def _ensure_configured(f):
         ''' 
             Ensures that we are properly configured before making
             any requests to server
@@ -67,10 +67,10 @@ class API:
     def test_connection(self):
         self.make_request("courses.json")
 
-    @__ensure_configured
+    @_ensure_configured
     def make_request(self, slug, timeout=10):
         resp = self.get(slug, timeout=timeout)
-        return self.__to_json(resp)
+        return self._to_json(resp)
 
     def get_courses(self):
         return self.make_request("courses.json")["courses"]
@@ -82,13 +82,13 @@ class API:
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
 
-    @__ensure_configured
+    @_ensure_configured
     def get_zip_stream(self, exercise):
         slug = "exercises/{0}.zip".format(exercise.tid)
         resp = self.get(slug, stream=True)
         return resp
 
-    @__ensure_configured
+    @_ensure_configured
     def send_zip(self, exercise, file, params):
         """ 
         Send zipfile to TMC for given exercise
@@ -104,7 +104,7 @@ class API:
                 "commit": "Submit"
             }
         )
-        return self.__to_json(resp)
+        return self._to_json(resp)
 
     def get_submission(self, id):
         req = self.make_request("submissions/{0}.json".format(id))
@@ -112,7 +112,7 @@ class API:
             return None
         return req
 
-    def __do_request(self, method, slug, **kwargs):
+    def _do_request(self, method, slug, **kwargs):
         """ 
         Does HTTP request sending / response validation.
         Prevents RequestExceptions from propagating 
@@ -138,7 +138,7 @@ class API:
             raise APIError(reason.format(method, url, repr(e)))
         return resp
 
-    def __to_json(self, resp):
+    def _to_json(self, resp):
         '''
             Extract json from a response. 
             Assumes response is valid otherwise.
