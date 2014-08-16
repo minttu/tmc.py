@@ -69,12 +69,7 @@ class API:
 
     @__ensure_configured
     def make_request(self, slug, timeout=10):
-        url = "{0}{1}".format(self.server_url, slug)
-        resp = self.get(url,
-                   headers=self.auth_header,
-                   params=self.params,
-                   timeout=timeout)
-
+        resp = self.get(slug, timeout=timeout)
         return self.__to_json(resp)
 
     def get_courses(self):
@@ -89,26 +84,23 @@ class API:
 
     @__ensure_configured
     def get_zip_stream(self, exercise):
-        tmpl = "{0}exercises/{1}.zip" 
-        url = tmpl.format(self.server_url, exercise.tid)
-        return self.get(url,
-                   stream=True,
-                   headers=self.auth_header,
-                   params=self.params)
+        slug = "exercises/{0}.zip".format(exercise.tid)
+        resp = self.get(slug, stream=True)
+        return resp
 
     @__ensure_configured
     def send_zip(self, exercise, file, params):
-        tmpl = "{0}exercises/{1}/submissions.json"
-        url = tmpl.format(self.server_url, exercise.tid)
+        """ 
+        Send zipfile to TMC for given exercise
+        """
+        slug = "exercises/{0}/submissions.json".format(exercise.tid)
         resp = self.post(
-            url,
-            headers=self.auth_header,
-            params=params,
+            slug,
+            params= params,
             files={
                 "submission[file]": ('submission.zip', file)
             },
             data={
-                "api_version": self.api_version, 
                 "commit": "Submit"
             }
         )
@@ -120,11 +112,17 @@ class API:
             return None
         return req
 
-    def __do_request(self, method, url, **kwargs):
-        ''' 
-            Does HTTP using Requests.
-            Prevents RequestExceptions from propagating 
-        '''
+    def __do_request(self, method, slug, **kwargs):
+        """ 
+        Does HTTP request sending / response validation.
+        Prevents RequestExceptions from propagating 
+        """ 
+        url = "{0}{1}".format(self.server_url, slug)
+
+        defaults = {"headers": self.auth_header, "params": self.params}
+        for item in defaults.keys():
+            # override default's value with kwargs's one if existing.
+            kwargs[item] = dict(defaults[item], **(kwargs.get(item, {})))
         #
         # request() can raise connectivity related exceptions.
         # raise_for_status raises an exception ONLY if the response 
@@ -138,7 +136,6 @@ class API:
         except RequestException as e:
             reason = "HTTP {0} request to {1} failed: {2}"
             raise APIError(reason.format(method, url, repr(e)))
-
         return resp
 
     def __to_json(self, resp):
