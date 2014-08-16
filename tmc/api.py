@@ -87,10 +87,10 @@ class API:
         return self._to_json(resp)
 
     def get_submission(self, id):
-        req = self.make_request("submissions/{0}.json".format(id))
-        if req["status"] == "processing":
+        resp = self.make_request("submissions/{0}.json".format(id))
+        if resp["status"] == "processing":
             return None
-        return req
+        return resp
 
     def _do_request(self, method, slug, **kwargs):
         """ 
