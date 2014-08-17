@@ -7,6 +7,7 @@ from tmc.models import Config
 
 # from tmc.version import __version__
 
+
 class API:
 
     """Handles communication with TMC server."""
@@ -76,13 +77,13 @@ class API:
         return resp
 
     def send_zip(self, exercise_id, file, params):
-        """ 
+        """
         Send zipfile to TMC for given exercise
         """
         slug = "exercises/{0}/submissions.json".format(exercise_id)
         resp = self.post(
             slug,
-            params= params,
+            params=params,
             files={
                 "submission[file]": ('submission.zip', file)
             },
@@ -99,10 +100,10 @@ class API:
         return resp
 
     def _do_request(self, method, slug, **kwargs):
-        """ 
+        """
         Does HTTP request sending / response validation.
-        Prevents RequestExceptions from propagating 
-        """ 
+        Prevents RequestExceptions from propagating
+        """
         # ensure we are configured
         if not self.tried_configuration:
             self.db_configure()
@@ -119,10 +120,10 @@ class API:
             kwargs[item] = dict(defaults[item], **(kwargs.get(item, {})))
 
         # request() can raise connectivity related exceptions.
-        # raise_for_status raises an exception ONLY if the response 
+        # raise_for_status raises an exception ONLY if the response
         # status_code is "not-OK" i.e 4XX, 5XX..
         #
-        # All of these inherit from RequestException 
+        # All of these inherit from RequestException
         # which is "translated" into an APIError.
         try:
             resp = request(method, url, **kwargs)
@@ -133,11 +134,11 @@ class API:
         return resp
 
     def _to_json(self, resp):
-        '''
-            Extract json from a response. 
+        """
+            Extract json from a response.
             Assumes response is valid otherwise.
             Internal use only.
-        '''
+        """
         try:
             json = resp.json()
         except ValueError as e:
@@ -147,4 +148,3 @@ class API:
         if "error" in json:
             raise APIError("JSON error: {0}".format(json["error"]))
         return json
-

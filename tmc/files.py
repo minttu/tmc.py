@@ -5,7 +5,7 @@ import zipfile
 from io import BytesIO
 
 from tmc import api
-from tmc.errors import APIError, NotDownloaded, TMCError, WrongExerciseType
+from tmc.errors import NotDownloaded, TMCError, WrongExerciseType
 from tmc.ui.spinner import Spinner
 
 
@@ -28,7 +28,7 @@ def download_exercise(exercise, force=False, update_java=False):
     @Spinner.decorate("Downloaded.", waitmsg="Downloading.")
     def inner(exercise):
         tmpfile = BytesIO()
-        req = api.get_zip_stream(exercise.tid, tmpfile)
+        api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
         zipfp.extractall(outpath)
         exercise.is_downloaded = True
