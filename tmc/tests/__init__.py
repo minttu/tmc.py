@@ -2,10 +2,19 @@ from tmc.__main__ import run_command
 from tmc.errors import TMCExit
 from tmc.version import __version__ as version
 import os
+import sys
 from os import path
 
-with open(path.join(os.getcwd(), "testsetup.py")) as fp:
-    exec(fp.read())
+sys.path.append(os.getcwd())
+from testsetup import (username, server_uri, course_id, exercise_id,
+                       fail_file, fail_compile_file, success_file)
+
+
+username = os.getenv("TMC_USERNAME", username)
+password = os.getenv("TMC_PASSWORD", "")
+server_uri = os.getenv("TMC_URI", server_uri)
+course_id = os.getenv("TMC_CDI", course_id)
+exercise_id = os.getenv("TMC_EID", exercise_id)
 
 
 def test_version():
@@ -34,12 +43,12 @@ def test_configure():
     Configuring works
     """
     out, err, ex = run_command(["configure",
-                                "-u", os.getenv("TMC_USERNAME", username),
-                                "-p", os.getenv("TMC_PASSWORD", ""),
-                                "-s", os.getenv("TMC_URI", server_uri),
-                                "-i", os.getenv("TMC_CID", course_id)
+                                "-u", username,
+                                "-p", password,
+                                "-s", server_uri,
+                                "-i", course_id
                                 ])
-    assert ex == None
+    assert ex is None
 
 
 def test_next():
@@ -47,7 +56,7 @@ def test_next():
     Next works
     """
     _, _, ex = run_command("next")
-    assert ex == None
+    assert ex is None
 
 
 def test_previous():
@@ -57,27 +66,26 @@ def test_previous():
     os.environ["TMC_TESTING"] = "1"
 
     _, _, ex = run_command("previous")
-    assert ex == None
+    assert ex is None
 
     _, _, ex = run_command("previous")
-    assert ex != None
+    assert ex is not None
 
 
 def test_select():
     """
     Selecting works
     """
-    _, _, ex = run_command(["select", "-i", os.getenv("TMC_EID", exercise_id)])
-    assert ex == None
+    _, _, ex = run_command(["select", "-i", exercise_id])
+    assert ex is None
 
 
 def test_download_single():
     """
     Downloading works
     """
-    _, _, ex = run_command(["download", "-f",
-                            "-i", os.getenv("TMC_EID", exercise_id)])
-    assert ex == None
+    _, _, ex = run_command(["download", "-f", "-i", exercise_id])
+    assert ex is None
 
     from tmc.models import Exercise
 

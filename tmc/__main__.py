@@ -10,7 +10,6 @@ from subprocess import Popen
 try:
     from subprocess import DEVNULL
 except ImportError:
-    import os
     DEVNULL = open(os.devnull, 'wb')
 
 
