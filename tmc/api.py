@@ -16,7 +16,6 @@ class API:
         self.server_url = ""
         self.auth_header = ""
         self.configured = False
-        self.tried_configuration = False
         self.api_version = 7
         # uncomment client and client_version after tmc.mooc.fi/mooc upgrades
         """ self.params = {
@@ -34,16 +33,23 @@ class API:
         self.get = partial(self._do_request, "GET")
         self.post = partial(self._do_request, "POST")
 
-    def db_configure(self):
-        url = Config.get_value("url")
-        token = Config.get_value("token")
-        self.configure(url, token)
+    def configure(self, url=None, token=None, test=False):
+        """
+        Configure the api to use given url and token or to get them from the
+        Config.
+        """
 
-    def configure(self, url, token):
+        if url is None:
+            url = Config.get_value("url")
+        if token is None:
+            token = Config.get_value("token")
+
         self.server_url = url
         self.auth_header = {"Authorization": "Basic {0}".format(token)}
         self.configured = True
-        self.tried_configuration = True
+
+        if test:
+            self.test_connection()
 
         Config.set("url", url)
         Config.set("token", token)
@@ -58,12 +64,12 @@ class API:
     def get_courses(self):
         return self.make_request("courses.json")["courses"]
 
-    def get_exercises(self, id):
-        resp = self.make_request("courses/{0}.json".format(id))
+    def get_exercises(self, course_id):
+        resp = self.make_request("courses/{0}.json".format(course_id))
         return resp["course"]["exercises"]
 
-    def get_exercise(self, id):
-        return self.make_request("exercises/{0}.json".format(id))
+    def get_exercise(self, exercise_id):
+        return self.make_request("exercises/{0}.json".format(exercise_id))
 
     def get_zip_stream(self, exercise_id, tmpfile_handle):
         slug = "exercises/{0}.zip".format(exercise_id)
@@ -93,8 +99,8 @@ class API:
         )
         return self._to_json(resp)
 
-    def get_submission(self, id):
-        resp = self.make_request("submissions/{0}.json".format(id))
+    def get_submission(self, submission_id):
+        resp = self.make_request("submissions/{0}.json".format(submission_id))
         if resp["status"] == "processing":
             return None
         return resp
@@ -105,10 +111,8 @@ class API:
         Prevents RequestExceptions from propagating
         """
         # ensure we are configured
-        if not self.tried_configuration:
-            self.db_configure()
         if not self.configured:
-            raise APIError("API needs to be configured before use!")
+            self.configure()
 
         url = "{0}{1}".format(self.server_url, slug)
 

@@ -7,14 +7,13 @@ from tmc.exercise_tests.basetest import BaseTest, TestResult
 class CheckTest(BaseTest):
 
     def __init__(self):
-        self.name = "Check"
+        super().__init__("Check")
 
     def applies_to(self, exercise):
         return path.isfile(path.join(exercise.path(), "Makefile"))
 
     def test(self, exercise):
-        returncode, out, err = self.run(["make", "clean", "all", "run-test"],
-                                        exercise)
+        _, _, err = self.run(["make", "clean", "all", "run-test"], exercise)
         ret = TestResult()
 
         testpath = path.join(exercise.path(), "test", "tmc_test_results.xml")

@@ -6,10 +6,6 @@ import time
 
 class Spinner(threading.Thread):
 
-    """
-    A spinny spinner.
-    """
-
     def __init__(self, msg="", waitmsg="Please wait"):
         threading.Thread.__init__(self)
         self.chars = ['\\', '|', '/', '-']
@@ -27,7 +23,7 @@ class Spinner(threading.Thread):
             self.index += 1
             time.sleep(0.05)
 
-    def stopspin(self):
+    def stop_spinning(self):
         self.spinning = False
         sys.stdout.write("\b" * (len(self.template) - 2)
                          + self.msg + " " * (len(self.template) - 2) + "\n")
@@ -36,7 +32,11 @@ class Spinner(threading.Thread):
 
     @staticmethod
     def decorate(msg="", waitmsg="Please wait"):
-        def Decorator(func):
+        """
+        Decorated methods progress will be displayed to the user as a spinner.
+        Mostly for slower functions that do some network IO.
+        """
+        def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 spin = Spinner(msg=msg, waitmsg=waitmsg)
@@ -46,13 +46,13 @@ class Spinner(threading.Thread):
                     a = func(*args, **kwargs)
                 except Exception as e:
                     spin.msg = "Something went wrong: "
-                    spin.stopspin()
+                    spin.stop_spinning()
                     spin.join()
                     raise e
-                spin.stopspin()
+                spin.stop_spinning()
                 spin.join()
                 return a
 
             return wrapper
 
-        return Decorator
+        return decorator

@@ -1,3 +1,7 @@
+"""
+Contains various test for nosetest.
+"""
+
 from tmc.__main__ import run_command
 from tmc.errors import TMCExit
 from tmc.version import __version__ as version
@@ -21,7 +25,7 @@ def test_version():
     """
     Prints the version correctly
     """
-    stdout, stderr, _ = run_command("version")
+    stdout, _, _ = run_command("version")
     assert "tmc.py version {}".format(version) in stdout
 
 
@@ -31,10 +35,10 @@ def test_reset():
     """
     import tmc.ui.prompt
     tmc.ui.prompt.input = lambda _: "y"
-    stdout, stderr, _ = run_command("reset")
+    stdout, _, _ = run_command("reset")
     assert "Database resetted." in stdout
     tmc.ui.prompt.input = lambda _: "n"
-    stdout, stderr, _ = run_command("reset")
+    stdout, _, _ = run_command("reset")
     assert "Database resetted." not in stdout
 
 
@@ -42,12 +46,10 @@ def test_configure():
     """
     Configuring works
     """
-    out, err, ex = run_command(["configure",
-                                "-u", username,
-                                "-p", password,
-                                "-s", server_uri,
-                                "-i", course_id
-                                ])
+    _, _, ex = run_command(
+        ["configure", "-u", username, "-p", password, "-s", server_uri,
+         "-i", course_id]
+    )
     assert ex is None
 
 
@@ -103,12 +105,11 @@ def test_test_fail():
         f.write(fail_file)
 
     os.environ["TMC_TESTING"] = "1"
-    stdout, stderr = None, None
-    exit = False
+    wasexit = False
     stdout, stderr, exception = run_command("test")
     if type(exception) == TMCExit:
-        exit = True
-    assert exit == True
+        wasexit = True
+    assert wasexit == True
     assert "Results:" in stdout
     assert "\033[31m" in stderr and "\033[0m" in stderr
 
@@ -124,12 +125,11 @@ def test_compile_fail():
         f.write(fail_compile_file)
 
     os.environ["TMC_TESTING"] = "1"
-    stdout, stderr = None, None
-    exit = False
+    wasexit = False
     stdout, stderr, exception = run_command("test")
     if type(exception) == TMCExit:
-        exit = True
-    assert exit == True
+        wasexit = True
+    assert wasexit == True
     assert "Results:" in stdout
     assert "\033[31m" in stderr and "\033[0m" in stderr
 
@@ -145,12 +145,11 @@ def test_test_success():
         f.write(success_file)
 
     os.environ["TMC_TESTING"] = "1"
-    stdout, stderr = None, None
-    exit = False
+    wasexit = False
     stdout, stderr, exception = run_command("test")
     if type(exception) == TMCExit:
-        exit = True
-    assert exit == False
+        wasexit = True
+    assert wasexit == False
     assert "Results:" in stdout
     assert "\033[32m" in stdout and "\033[0m" in stdout
     assert len(stderr) == 0
@@ -167,12 +166,11 @@ def test_submit_fail():
         f.write(fail_file)
 
     os.environ["TMC_TESTING"] = "1"
-    stdout, stderr = None, None
-    exit = False
+    wasexit = False
     stdout, stderr, exception = run_command("submit")
     if type(exception) == TMCExit:
-        exit = True
-    assert exit == True
+        wasexit = True
+    assert wasexit == True
     assert "Results:" in stdout
     uri = os.getenv("TMC_URI", server_uri)
     assert "URL: " + uri + "submissions/" in stdout
@@ -192,12 +190,11 @@ def test_submit_success():
         f.write(success_file)
 
     os.environ["TMC_TESTING"] = "1"
-    stdout, stderr = None, None
-    exit = False
+    wasexit = False
     stdout, stderr, exception = run_command(["submit", "-p", "-r"])
     if type(exception) == TMCExit:
-        exit = True
-    assert exit == False
+        wasexit = True
+    assert wasexit == False
     assert "Results:" in stdout
     assert "\033[32mPoints [1]\033[0m" in stdout
     assert "Requested a review" in stdout

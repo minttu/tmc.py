@@ -1,6 +1,10 @@
+# pylint: disable=C0111
+
+
 class TMCError(RuntimeError):
 
     def __init__(self, value="Undefined TMC Error occured!"):
+        super().__init__()
         self.value = value
 
     def __str__(self):
@@ -10,58 +14,58 @@ class TMCError(RuntimeError):
 class TMCExit(TMCError):
 
     def __init__(self):
-        self.value = "sys.exit"
+        super().__init__("sys.exit")
 
 
 class WrongExerciseType(TMCError):
 
-    def __init__(self, type):
-        self.value = "Exercise wasn't of the type \"{}\".".format(type)
+    def __init__(self, ex_type):
+        super().__init__("Exercise wasn't of a \"{}\" type.".format(ex_type))
 
 
 class NoSuitableTestFound(TMCError):
 
     def __init__(self):
-        self.value = "No suitable test was found for the exercise."
+        super().__init__("No suitable test was found for the exercise.")
 
 
 class MissingProgram(TMCError):
 
     def __init__(self, program):
-        self.value = "You don't seem to have {} installed.".format(program)
+        super().__init__("Program {} wasn't found.".format(program))
 
 
 class NotDownloaded(TMCError):
 
     def __init__(self):
-        self.value = "That exercise has not been downloaded!"
+        super().__init__("That exercise has not been downloaded!")
 
 
 class NoSuchExercise(TMCError):
 
     def __init__(self):
-        self.value = "There is no such exercise."
+        super().__init__("There is no such exercise.")
 
 
 class NoSuchCourse(TMCError):
 
     def __init__(self):
-        self.value = "There is no such course."
+        super().__init__("There is no such course.")
 
 
 class NoCourseSelected(TMCError):
 
     def __init__(self):
-        self.value = "No course has been selected. (tmc select --course)"
+        super().__init__("No course has been selected. (tmc select --course)")
 
 
 class NoExerciseSelected(TMCError):
 
     def __init__(self):
-        self.value = "No exercise has been selected. (tmc select)"
+        super().__init__("No exercise has been selected. (tmc select)")
 
 
 class APIError(TMCError):
 
     def __init__(self, value="Undefined API error occured!"):
-        self.value = value
+        super().__init__(value)

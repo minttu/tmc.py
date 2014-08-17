@@ -8,7 +8,7 @@ from tmc.exercise_tests.basetest import BaseTest, TestResult
 class AntTest(BaseTest):
 
     def __init__(self):
-        self.name = "Ant"
+        super().__init__("Ant")
 
     def applies_to(self, exercise):
         return path.isfile(path.join(exercise.path(), "build.xml"))

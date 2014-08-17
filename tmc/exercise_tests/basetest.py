@@ -7,6 +7,9 @@ from tmc.ui.spinner import Spinner
 
 
 class TestResult(object):
+    """
+    Holds a testing result.
+    """
 
     def __init__(self, success=True, error=""):
         self.success = success
@@ -22,8 +25,8 @@ class TestResult(object):
 
 class BaseTest(object):
 
-    def __init__(self):
-        raise NotImplementedError()
+    def __init__(self, name):
+        self.name = name
 
     def run(self, params, exercise):
         """

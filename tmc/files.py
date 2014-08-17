@@ -77,7 +77,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     def inner():
         tmpfile = BytesIO()
         zipfp = zipfile.ZipFile(tmpfile, "w")
-        for root, dirs, files in os.walk(outpath):
+        for root, _, files in os.walk(outpath):
             for file in files:
                 zipfp.write(os.path.join(root, file),
                             os.path.relpath(os.path.join(root, file),

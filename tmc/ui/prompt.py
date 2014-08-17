@@ -1,4 +1,7 @@
 def yn_prompt(msg, default=True):
+    """
+    Prompts the user for yes or no.
+    """
     ret = custom_prompt(msg, ["y", "n"], "y" if default else "n")
     if ret == "y":
         return True
@@ -6,6 +9,9 @@ def yn_prompt(msg, default=True):
 
 
 def custom_prompt(msg, options, default):
+    """
+    Prompts the user with custom options.
+    """
     formatted_options = [
         x.upper() if x == default else x.lower() for x in options
     ]

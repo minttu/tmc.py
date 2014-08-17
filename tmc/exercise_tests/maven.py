@@ -8,7 +8,7 @@ from tmc.exercise_tests.basetest import BaseTest, TestResult
 class MavenTest(BaseTest):
 
     def __init__(self):
-        self.name = "Maven"
+        super().__init__("Maven")
 
     def applies_to(self, exercise):
         return path.isfile(path.join(exercise.path(), "pom.xml"))
@@ -34,5 +34,8 @@ class MavenTest(BaseTest):
                 for line in out.split("\n"):
                     if "[ERROR] " in line:
                         ret.error += line.split("[ERROR] ")[1] + "\n"
+
+            if len(ret.error) == 0:
+                ret.error = err
 
         return ret

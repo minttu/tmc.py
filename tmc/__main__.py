@@ -1,11 +1,26 @@
 #!/usr/bin/env python3
 
-import base64
-import getpass
 import os
 import sys
+from base64 import b64encode
 from functools import wraps
+from getpass import getpass
 from subprocess import Popen
+
+import peewee
+
+import argh
+from argh.decorators import aliases, arg
+from tmc import api
+from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
+                        TMCError, TMCExit)
+from tmc.exercise_tests.basetest import run_test
+from tmc.files import download_exercise, submit_exercise
+from tmc.models import Config, Course, Exercise, reset_db
+from tmc.ui.menu import Menu
+from tmc.ui.prompt import custom_prompt, yn_prompt
+from tmc.ui.spinner import Spinner
+from tmc.version import __version__
 
 try:
     from subprocess import DEVNULL
@@ -13,22 +28,10 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
-import argh
-import peewee
-from argh.decorators import aliases, arg
-from tmc import api
-from tmc.version import __version__
-from tmc.files import download_exercise, submit_exercise
-from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
-                        NoSuchCourse, NoSuchExercise, TMCError, TMCExit)
-from tmc.models import Config, Course, Exercise, reset_db
-from tmc.ui.menu import Menu
-from tmc.ui.prompt import custom_prompt, yn_prompt
-from tmc.ui.spinner import Spinner
-from tmc.exercise_tests.basetest import run_test
-
-
 def selected_course(func):
+    """
+    Passes the selected course as the first argument to func.
+    """
     @wraps(func)
     def inner(*args, **kwargs):
         course = Course.get_selected()
@@ -37,6 +40,9 @@ def selected_course(func):
 
 
 def selected_exercise(func):
+    """
+    Passes the selected exercise as the first argument to func.
+    """
     @wraps(func)
     def inner(*args, **kwargs):
         exercise = Exercise.get_selected()
@@ -45,10 +51,13 @@ def selected_exercise(func):
 
 
 def false_exit(func):
+    """
+    If func returns False the program exits immediately.
+    """
     @wraps(func)
     def inner(*args, **kwargs):
         ret = func(*args, **kwargs)
-        if ret == False:
+        if ret is False:
             if "TMC_TESTING" in os.environ:
                 raise TMCExit()
             else:
@@ -61,16 +70,20 @@ def false_exit(func):
 @arg("-s", "--server", help="Server address to be used.")
 @arg("-u", "--username", help="Username to be used.")
 @arg("-p", "--password", help="Password to be used.")
-@arg("-i", "--id", help="Course ID to be used.")
-def configure(server=None, username=None, password=None, id=None):
+@arg("-i", "--id", dest="tid", help="Course ID to be used.")
+@false_exit
+def configure(server=None, username=None, password=None, tid=None):
     """
     Configure tmc.py to use your account.
     """
-    if not server and not username and not password and not id:
+    auto = False
+    if not server and not username and not password and not tid:
         if Config.has():
             sure = input("Override old configuration [y/N]: ")
             if sure.upper() != "Y":
-                return
+                return False
+    else:
+        auto = True
     reset_db()
     if not server:
         while True:
@@ -101,22 +114,23 @@ def configure(server=None, username=None, password=None, id=None):
         if not username:
             username = input("Username: ")
         if not password:
-            password = getpass.getpass("Password: ")
+            password = getpass("Password: ")
         # wow, such security
-        token = base64.b64encode(bytes("{0}:{1}".format(username, password),
-                                       'utf-8')).decode("utf-8")
+        token = b64encode(
+            bytes("{0}:{1}".format(username, password), encoding='utf-8')
+        ).decode("utf-8")
 
-        api.configure(server, token)
         try:
-            api.test_connection()
+            api.configure(url=server, token=token, test=True)
         except APIError as e:
             print(e)
-            if yn_prompt("Retry authentication"):
+            if auto is False and yn_prompt("Retry authentication"):
+                username = password = None
                 continue
-            exit()
+            return False
         break
-    if id:
-        select(course=True, id=id, auto=True)
+    if tid:
+        select(course=True, tid=tid, auto=True)
     else:
         select(course=True)
 
@@ -124,19 +138,22 @@ def configure(server=None, username=None, password=None, id=None):
 @aliases("cur")
 @selected_exercise
 def current(exercise):
-    listall(single=exercise)
+    """
+    Prints some small info about the current exercise.
+    """
+    list_all(single=exercise)
 
 
 @aliases("dl")
-@arg("-i", "--id", help="Download this ID.")
+@arg("-i", "--id", dest="tid", help="Download this ID.")
 @arg("-a", "--all", default=False, action="store_true",
-     help="Download all exercises.")
+     dest="dl_all", help="Download all exercises.")
 @arg("-f", "--force", default=False, action="store_true",
      help="Should the download be forced.")
 @arg("-u", "--upgrade", default=False, action="store_true",
      help="Should the Java target be upgraded from 1.6 to 1.7")
 @selected_course
-def download(course, id=None, all=False, force=False, upgrade=False):
+def download(course, tid=None, dl_all=False, force=False, upgrade=False):
     """
     Download the exercises from the server.
     """
@@ -146,11 +163,11 @@ def download(course, id=None, all=False, force=False, upgrade=False):
                           force=force,
                           update_java=upgrade)
 
-    if all:
+    if dl_all:
         for exercise in list(course.exercises):
             dl(exercise.tid)
-    elif id is not None:
-        dl(int(id))
+    elif tid is not None:
+        dl(int(tid))
     else:
         for exercise in list(course.exercises):
             if not exercise.is_completed:
@@ -159,48 +176,43 @@ def download(course, id=None, all=False, force=False, upgrade=False):
                 exercise.update_downloaded()
 
 
-@aliases("skip")
+@aliases("next")
 @selected_course
 @false_exit
-def next(course, num=1):
+def skip(course, num=1):
     """
     Go to the next exercise.
     """
     sel = None
     try:
         sel = Exercise.get_selected()
+        if sel.course.tid != course.tid:
+            sel = None
     except NoExerciseSelected:
         pass
-    try:
-        if sel is None:
-            for i in course.exercises:
-                sel = i
-                break
-        else:
-            try:
-                sel = Exercise.get(Exercise.id == sel.id + num)
-            except peewee.DoesNotExist:
-                print("There are no more exercises in this course.")
-                return False
-    except peewee.InterfaceError:
-        # OK. This looks bizzare. It is. It works.
-        return next()
-        # Literally no idea why this works.
-        # sqlite3.InterfaceError: Error binding parameter 0 - probably
-        # unsupported type.
-        # This might be a bug in peewee.
+
+    if sel is None:
+        for i in course.exercises:
+            sel = i
+            break
+    else:
+        try:
+            sel = Exercise.byid(sel.id + num)
+        except peewee.DoesNotExist:
+            print("There are no more exercises in this course.")
+            return False
+
     sel.set_select()
-    listall(single=sel)
-    # print("Selected {}".format(sel))
+    list_all(single=sel)
 
 
 @aliases("prev")
 def previous():
-    next(num=-1)
+    skip(num=-1)
 
 
-@aliases("reset")
-def resetdb():
+@aliases("resetdb")
+def reset():
     """
     Resets the local database.
     """
@@ -222,89 +234,71 @@ def run(exercise, command):
 
 @aliases("sel")
 @arg("-c", "--course", action="store_true", help="Select a course instead.")
-@arg("-i", "--id", help="Select this ID without invoking the curses UI.")
-def select(course=False, id=None, auto=False):
+@arg("-i", "--id", dest="tid",
+     help="Select this ID without invoking the curses UI.")
+def select(course=False, tid=None, auto=False):
     """
     Select a course or an exercise.
     """
     if course:
         update(course=True)
-        og = None
+        course = None
         try:
-            og = Course.get_selected()
+            course = Course.get_selected()
         except NoCourseSelected:
             pass
-        start_index = 0
-        if og is not None:
-            start_index = og.tid
-        ret = id
-        if not ret:
+
+        ret = {}
+        if not tid:
             ret = Menu.launch("Select a course",
                               Course.select().execute(),
-                              start_index)
-        if ret != -1:
-            try:
-                sel = Course.get(Course.tid == ret)
-            except peewee.DoesNotExist:
-                raise NoSuchCourse()
-            sel.set_select()
+                              course)
+        else:
+            ret["item"] = Course.get(Course.tid == tid)
+        if "item" in ret:
+            ret["item"].set_select()
             update()
-            if sel.path == "":
+            if ret["item"].path == "":
                 select_a_path(auto=auto)
-            # Unselect the previously selected exercise
-            oldex = None
-            try:
-                oldex = Exercise.get_selected()
-            except TMCError:
-                pass
-            if oldex:
-                oldex.is_selected = False
-                oldex.save()
-            next()
+            # Selects the first exercise in this course
+            skip()
             return
         else:
             print("You can select the course with `tmc select --course`")
             return
     else:
-        og = None
+        selected = None
         try:
-            og = Exercise.get_selected()
+            selected = Exercise.get_selected()
         except NoExerciseSelected:
             pass
-        start_index = 0
-        if og is not None:
-            start_index = og.tid
-        sel = Course.get_selected()
-        ret = id
-        if not ret:
+
+        ret = {}
+        if not tid:
             ret = Menu.launch("Select an exercise",
-                              Exercise.select().where(
-                                  Exercise.course == sel.id).execute(),
-                              start_index)
-        if ret != -1:
-            try:
-                sel = Exercise.get(Exercise.tid == ret)
-            except peewee.DoesNotExist:
-                raise NoSuchExercise()
-            sel.set_select()
-            sel.course.set_select()
-            print("Selected {}".format(sel))
+                              Course.get_selected(),
+                              selected)
+        else:
+            ret["item"] = Exercise.byid(tid)
+        if "item" in ret:
+            ret["item"].set_select()
+            print("Selected {}".format(ret["item"]))
 
 
 @aliases("su")
-@arg("-i", "--id", help="Submit this ID.")
+@arg("-i", "--id", dest="tid", help="Submit this ID.")
 @arg("-p", "--pastebin", default=False, action="store_true",
      help="Should the submission be sent to TMC pastebin.")
 @arg("-r", "--review", default=False, action="store_true",
      help="Request a review for this submission.")
 @selected_course
 @false_exit
-def submit(course, id=None, pastebin=False, review=False):
+def submit(course, tid=None, pastebin=False, review=False):
     """
     Submit the selected exercise to the server.
     """
-    if id is not None:
-        return submit_exercise(Exercise.byid(id),
+    if tid is not None:
+        return submit_exercise(Exercise.byid(tid),
                                pastebin=pastebin,
                                request_review=review)
     else:
@@ -315,15 +309,15 @@ def submit(course, id=None, pastebin=False, review=False):
 
 
 @aliases("te")
-@arg("-i", "--id", help="Test this ID.")
+@arg("-i", "--id", dest="tid", help="Test this ID.")
 @selected_course
 @false_exit
-def test(course, id=None):
+def test(course, tid=None):
     """
     Run tests on the selected exercise.
     """
-    if id is not None:
-        return run_test(Exercise.byid(id))
+    if tid is not None:
+        return run_test(Exercise.byid(tid))
     else:
         sel = Exercise.get_selected()
         if not sel:
@@ -331,9 +325,9 @@ def test(course, id=None):
         return run_test(sel)
 
 
-@aliases("ls")
+@aliases("ls", "listall")
 @selected_course
-def listall(course, single=None):
+def list_all(course, single=None):
     """
     Lists all of the exercises in the current course.
     """
@@ -344,23 +338,22 @@ def listall(course, single=None):
     def bc(val):
         return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
 
-    def format(exercise):
+    def format_line(exercise):
         return "{0} │ {1} │ {2} │ {3} │ {4}".format(exercise.tid,
                                                     bs(exercise.is_selected),
                                                     bc(exercise.is_downloaded),
                                                     bc(exercise.is_completed),
                                                     exercise.menuname())
 
-    print("ID{0}│ {1} │ {2} │ {3} │ {4}".format(
-        (len(str(course.exercises[0].tid)) - 1) * " ",
-        "S", "D", "C", "Name"
+    print("ID{0}│ S │ D │ C │ Name".format(
+        (len(str(course.exercises[0].tid)) - 1) * " "
     ))
     if single:
         print(format(single))
         return
     for exercise in course.exercises:
         # ToDo: use a pager
-        print(format(exercise))
+        print(format_line(exercise))
 
 
 @aliases("up")
@@ -377,7 +370,7 @@ def update(course=False):
                 old = None
                 try:
                     old = Course.get(Course.tid == course["id"])
-                except Course.DoesNotExist:
+                except peewee.DoesNotExist:
                     old = None
                 if old:
                     continue
@@ -393,8 +386,8 @@ def update(course=False):
             for exercise in api.get_exercises(selected.tid):
                 old = None
                 try:
-                    old = Exercise.get(Exercise.tid == exercise["id"])
-                except Exercise.DoesNotExist:
+                    old = Exercise.byid(exercise["id"])
+                except peewee.DoesNotExist:
                     old = None
                 if old is not None:
                     old.name = exercise["name"]
@@ -440,7 +433,7 @@ def select_a_path(course, auto=False):
                         ["r", "a", "n"],
                         "r")
     if ret == "a":
-        download(all=True)
+        download(dl_all=True)
     elif ret == "r":
         download()
     else:
@@ -454,11 +447,13 @@ def version():
     print("tmc.py version {0}".format(__version__))
     print("Copyright 2014 Juhani Imberg")
 
+commands = [select, update, download, test, submit, skip, current, previous,
+            reset, configure, version, list_all, run]
+
 
 def main():
     parser = argh.ArghParser()
-    parser.add_commands([select, update, download, test, submit, next, current,
-                         previous, resetdb, configure, version, listall, run])
+    parser.add_commands(commands)
     try:
         parser.dispatch()
     except TMCError as e:
@@ -471,8 +466,7 @@ def run_command(argv):
     if type(argv) == str:
         argv = [argv]
     parser = argh.ArghParser()
-    parser.add_commands([select, update, download, test, submit, next, current,
-                         previous, resetdb, configure, version, listall, run])
+    parser.add_commands(commands)
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     exception = None

@@ -1,7 +1,7 @@
 import os
 
 from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
-                    IntegerField, Model, SqliteDatabase)
+                    IntegerField, Model, SqliteDatabase, DoesNotExist)
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
 # SqliteDatabase will fail if there is no ~/.config
@@ -27,8 +27,9 @@ class Course(BaseModel):
     path = CharField(default="")
 
     def set_select(self):
-        Course.update(is_selected=False).where(
-            Course.is_selected == True).execute()
+        Course.update(
+            is_selected=False
+        ).where(Course.is_selected == True).execute()
         self.is_selected = True
         self.save()
 
@@ -70,6 +71,7 @@ class Exercise(BaseModel):
         Exercise.update(is_selected=False).where(
             Exercise.is_selected == True).execute()
         self.is_selected = True
+        self.course.set_select()
         self.save()
 
     def update_downloaded(self):
@@ -131,7 +133,7 @@ class Config(BaseModel):
             old = Config.get(Config.name == name)
             old.value = value
             old.save()
-        except Config.DoesNotExist:
+        except DoesNotExist:
             Config.create(name=name, value=value)
 
     @staticmethod
@@ -143,7 +145,7 @@ class Config(BaseModel):
         try:
             Config.get(Config.name == "url")
             return True
-        except Config.DoesNotExist:
+        except DoesNotExist:
             return False
 
 
