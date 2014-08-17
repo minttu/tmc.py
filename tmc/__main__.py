@@ -109,7 +109,7 @@ def configure(server=None, username=None, password=None, id=None):
 
         api.configure(server, token)
         try:
-            api.make_request("courses.json")
+            api.test_connection()
         except APIError as e:
             print(e)
             if yn_prompt("Retry authentication"):
