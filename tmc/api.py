@@ -64,9 +64,15 @@ class API:
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
 
-    def get_zip_stream(self, exercise_id):
+    def get_zip_stream(self, exercise_id, tmpfile_handle):
         slug = "exercises/{0}.zip".format(exercise_id)
         resp = self.get(slug, stream=True)
+
+        for block in resp.iter_content(1024):
+            if not block:
+                break
+            tmpfile_handle.write(block)
+
         return resp
 
     def send_zip(self, exercise_id, file, params):

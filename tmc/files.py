@@ -27,12 +27,8 @@ def download_exercise(exercise, force=False, update_java=False):
 
     @Spinner.decorate("Downloaded.", waitmsg="Downloading.")
     def inner(exercise):
-        req = api.get_zip_stream(exercise.tid)
         tmpfile = BytesIO()
-        for block in req.iter_content(1024):
-            if not block:
-                break
-            tmpfile.write(block)
+        req = api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
         zipfp.extractall(outpath)
         exercise.is_downloaded = True
