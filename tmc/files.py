@@ -27,12 +27,8 @@ def download_exercise(exercise, force=False, update_java=False):
 
     @Spinner.decorate("Downloaded.", waitmsg="Downloading.")
     def inner(exercise):
-        req = api.get_zip_stream(exercise)
         tmpfile = BytesIO()
-        for block in req.iter_content(1024):
-            if not block:
-                break
-            tmpfile.write(block)
+        req = api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
         zipfp.extractall(outpath)
         exercise.is_downloaded = True
@@ -88,7 +84,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
                                             os.path.join(outpath, '..')),
                             zipfile.ZIP_DEFLATED)
         zipfp.close()
-        return api.send_zip(exercise, tmpfile.getvalue(), params)
+        return api.send_zip(exercise.tid, tmpfile.getvalue(), params)
     resp = inner()
     if "submission_url" in resp:
         url = resp["submission_url"]
