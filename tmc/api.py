@@ -64,16 +64,16 @@ class API:
     def get_exercise(self, id):
         return self.make_request("exercises/{0}.json".format(id))
 
-    def get_zip_stream(self, exercise):
-        slug = "exercises/{0}.zip".format(exercise.tid)
+    def get_zip_stream(self, exercise_id):
+        slug = "exercises/{0}.zip".format(exercise_id)
         resp = self.get(slug, stream=True)
         return resp
 
-    def send_zip(self, exercise, file, params):
+    def send_zip(self, exercise_id, file, params):
         """ 
         Send zipfile to TMC for given exercise
         """
-        slug = "exercises/{0}/submissions.json".format(exercise.tid)
+        slug = "exercises/{0}/submissions.json".format(exercise_id)
         resp = self.post(
             slug,
             params= params,
