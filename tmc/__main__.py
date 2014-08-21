@@ -445,7 +445,7 @@ def version():
     Prints the version and exits.
     """
     print("tmc.py version {0}".format(__version__))
-    print("Copyright 2014 Juhani Imberg")
+    print("Copyright 2014 tmc.py contributors")
 
 commands = [select, update, download, test, submit, skip, current, previous,
             reset, configure, version, list_all, run]
