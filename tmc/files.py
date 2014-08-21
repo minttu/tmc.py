@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import zipfile
 from io import BytesIO
@@ -7,6 +6,8 @@ from io import BytesIO
 from tmc import api
 from tmc.errors import NotDownloaded, TMCError, WrongExerciseType
 from tmc.ui.spinner import Spinner
+
+from tmc.coloring import successmsg, warningmsg, errormsg, infomsg
 
 
 def download_exercise(exercise, force=False, update_java=False):
@@ -101,29 +102,48 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
                 return data
             time.sleep(1)
     data = inner()
+
     success = True
-    if data["status"] == "fail":
-        sys.stderr.write("\033[31m")
-        for testcase in data["test_cases"]:
-            if not testcase["successful"]:
-                sys.stderr.write("{}:\n  {}\n".format(testcase["name"],
-                                                      testcase["message"]))
-        sys.stderr.write("".join(["\033[33mFor better details run `tmc"
-                                  " test --id ", str(exercise.tid),
-                                  "`\033[0m\n"]))
+
+    status = data["status"]
+
+    if status == "fail":
+        warningmsg("Some tests failed:")
+        warningmsg("------------------")
+        for test in data["test_cases"]:
+            if test["successful"]:
+                successmsg("{name}: {message}\n".format(**test))
+            else:
+                errormsg("{name}:\n  {message}".format(**test))
+
+        helper = "For better details run 'tmc test --id {0}'\n"
+        warningmsg(helper.format(repr(exercise.tid)))
         success = False
-    elif data["status"] == "ok":
-        print("\033[32mPoints [" + ", ".join(data["points"]) + "]\033[0m")
-    elif data["status"] == "error":
-        print("\033[32m{0}\033[0m".format("Something went wrong :("))
-        print("\033[32m{0}\033[0m".format(data["error"]))
+
+    elif status == "ok":
+        successmsg("All tests successful!")
+        successmsg("---------------------")
+        points = ", ".join(data["points"])
+        successmsg("Points [{0}]".format(points))
+
+    elif status == "error":
+        warningmsg("Something went wrong :(")
+        warningmsg("-----------------------")
+        errormsg(data["error"])
+
+    else:
+        raise TMCError("Submission status unknown: {0}".format(status))
+
     if "paste_url" in data:
-        print("Pastebin: " + data["paste_url"])
+        infomsg("Pastebin URL: " + data["paste_url"])
+
     if data.get("requests_review", False):
         if data.get("reviewed", False):
-            print("This submission has been reviewed")
+            infomsg("This submission has been reviewed")
         else:
-            print("Requested a review")
-    print("URL: " + url.split(".json")[0])
+            infomsg("Requested a review")
+
+    infomsg("Submission URL: " + url.split(".json")[0])
+
     if not success:
         return False
