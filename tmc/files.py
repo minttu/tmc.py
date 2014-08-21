@@ -86,38 +86,41 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         zipfp.close()
         return api.send_zip(exercise.tid, tmpfile.getvalue(), params)
     resp = inner()
-    if "submission_url" in resp:
-        url = resp["submission_url"]
-        submission_id = int(url.split(".json")[0].split("submissions/")[1])
 
-        @Spinner.decorate("Results:", "Waiting for results.")
-        def inner():
-            while True:
-                data = api.get_submission(submission_id)
-                if data:
-                    return data
-                time.sleep(1)
-        data = inner()
-        success = True
-        if data["status"] == "fail":
-            sys.stderr.write("\033[31m")
-            for testcase in data["test_cases"]:
-                if not testcase["successful"]:
-                    sys.stderr.write("{}:\n  {}\n".format(testcase["name"],
-                                                          testcase["message"]))
-            sys.stderr.write("".join(["\033[33mFor better details run `tmc"
-                                      " test --id ", str(exercise.tid),
-                                      "`\033[0m\n"]))
-            success = False
-        elif data["status"] == "ok":
-            print("\033[32mPoints [" + ", ".join(data["points"]) + "]\033[0m")
-        if "paste_url" in data:
-            print("Pastebin: " + data["paste_url"])
-        if data.get("requests_review", False):
-            if data.get("reviewed", False):
-                print("This submission has been reviewed")
-            else:
-                print("Requested a review")
-        print("URL: " + url.split(".json")[0])
-        if not success:
-            return False
+    if "submission_url" not in resp:
+        return
+
+    url = resp["submission_url"]
+    submission_id = int(url.split(".json")[0].split("submissions/")[1])
+
+    @Spinner.decorate("Results:", "Waiting for results.")
+    def inner():
+        while True:
+            data = api.get_submission(submission_id)
+            if data:
+                return data
+            time.sleep(1)
+    data = inner()
+    success = True
+    if data["status"] == "fail":
+        sys.stderr.write("\033[31m")
+        for testcase in data["test_cases"]:
+            if not testcase["successful"]:
+                sys.stderr.write("{}:\n  {}\n".format(testcase["name"],
+                                                      testcase["message"]))
+        sys.stderr.write("".join(["\033[33mFor better details run `tmc"
+                                  " test --id ", str(exercise.tid),
+                                  "`\033[0m\n"]))
+        success = False
+    elif data["status"] == "ok":
+        print("\033[32mPoints [" + ", ".join(data["points"]) + "]\033[0m")
+    if "paste_url" in data:
+        print("Pastebin: " + data["paste_url"])
+    if data.get("requests_review", False):
+        if data.get("reviewed", False):
+            print("This submission has been reviewed")
+        else:
+            print("Requested a review")
+    print("URL: " + url.split(".json")[0])
+    if not success:
+        return False
