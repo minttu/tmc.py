@@ -27,6 +27,8 @@ try:
 except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
+from tmc.coloring import as_success, as_error
+
 
 def selected_course(func):
     """
@@ -336,7 +338,7 @@ def list_all(course, single=None):
         return "●" if val else " "
 
     def bc(val):
-        return "\033[32m✔\033[0m" if val else "\033[31m✘\033[0m"
+        return as_success("✔") if val else as_error("✘")
 
     def format_line(exercise):
         return "{0} │ {1} │ {2} │ {3} │ {4}".format(exercise.tid,

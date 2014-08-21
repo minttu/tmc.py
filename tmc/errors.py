@@ -1,4 +1,5 @@
 # pylint: disable=C0111
+from tmc.coloring import as_error
 
 
 class TMCError(RuntimeError):
@@ -8,7 +9,7 @@ class TMCError(RuntimeError):
         self.value = value
 
     def __str__(self):
-        return "\033[31m{0}\033[0m".format(self.value)
+        return as_error(repr(self.value))
 
 
 class TMCExit(TMCError):
