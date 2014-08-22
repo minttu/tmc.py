@@ -60,6 +60,7 @@ def modify_java_target(exercise, old="1.6", new="1.7"):
 
 def submit_exercise(exercise, request_review=False, pastebin=False):
     outpath = exercise.path()
+    infomsg("Submitting from:", outpath)
     print("{} -> {}".format(exercise.menuname(), "TMC Server"))
     outpath = os.path.join(outpath, "src")
     if not os.path.isdir(outpath):
