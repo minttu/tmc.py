@@ -86,18 +86,12 @@ as_success = partial(formatter, Colors.GREEN)
 as_info = partial(formatter, Colors.CYAN)
 
 
-# Directly print out with coloring
-def errormsg(s):
-    print(as_error(s), file=stderr)
+# Identical to print() but with support for output coloring
+def _print(color, *args, sep=' ', end='\n', file=stdout):
+    print(*(map(color, args)), sep=sep, end=end, file=file)
 
 
-def warningmsg(s):
-    print(as_warning(s), file=stderr)
-
-
-def successmsg(s):
-    print(as_success(s), file=stdout)
-
-
-def infomsg(s):
-    print(as_info(s), file=stdout)
+errormsg = partial(_print, as_error, file=stderr)
+warningmsg = partial(_print, as_warning, file=stderr)
+successmsg = partial(_print, as_success, file=stdout)
+infomsg = partial(_print, as_info, file=stdout)
