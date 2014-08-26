@@ -114,6 +114,9 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         success = False
     elif data["status"] == "ok":
         print("\033[32mPoints [" + ", ".join(data["points"]) + "]\033[0m")
+    elif data["status"] == "error":
+        print("\033[32m{0}\033[0m".format("Something went wrong :("))
+        print("\033[32m{0}\033[0m".format(data["error"]))
     if "paste_url" in data:
         print("Pastebin: " + data["paste_url"])
     if data.get("requests_review", False):

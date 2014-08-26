@@ -149,6 +149,4 @@ class API:
             reason = "TMC Server did not send valid JSON: {0}"
             raise APIError(reason.format(repr(e)))
 
-        if "error" in json:
-            raise APIError("JSON error: {0}".format(json["error"]))
         return json
