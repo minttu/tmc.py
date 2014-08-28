@@ -45,7 +45,7 @@ def formatter(color, s):
 class Printer(object):
     """
     Context manager for printing in specific color
-    Uses terminal character codes defined in colorama-module.
+    Uses terminal coloring character codes defined in Colors-class.
 
     Example:
         with Printer(Colors.RED, sys.stdout.writer) as wr:
@@ -56,7 +56,7 @@ class Printer(object):
     def __init__(self, color, output):
         """
         Args:
-            color: One of the character codes from colorama-module.
+            color: One of the character codes from Colors-class.
             output: An object that has .write method (e.g sys.stdout)
         """
         self.color = color
