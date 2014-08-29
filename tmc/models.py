@@ -80,14 +80,25 @@ class Exercise(BaseModel):
 
     @staticmethod
     def get_selected():
-        is_selected = Exercise.select().where(Exercise.is_selected == True)
-        first = None
-        for item in is_selected:
-            first = item
-            break
-        if not first:
+        sel = None
+        path = os.getcwd()
+        for course in Course.select().execute():
+            if path.startswith(course.path):
+                for ex in course.exercises:
+                    if path.startswith(ex.path()):
+                        sel = ex
+                        ex.set_select()
+                        print("Selected", "\"{}\"".format(ex.menuname()),
+                              "based on the current directory.")
+                        break
+                if sel:
+                    break
+
+        if not sel:
+            sel = Exercise.select().where(Exercise.is_selected == True).first()
+        if not sel:
             raise NoExerciseSelected()
-        return first
+        return sel
 
     @staticmethod
     def byid(id):
