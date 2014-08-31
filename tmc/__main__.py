@@ -73,19 +73,17 @@ def false_exit(func):
 @arg("-u", "--username", help="Username to be used.")
 @arg("-p", "--password", help="Password to be used.")
 @arg("-i", "--id", dest="tid", help="Course ID to be used.")
+@arg("-a", "--auto", action="store_true", help="Don't prompt for download path, use default instead")
 @false_exit
-def configure(server=None, username=None, password=None, tid=None):
+def configure(server=None, username=None, password=None, tid=None, auto=False):
     """
     Configure tmc.py to use your account.
     """
-    auto = False
     if not server and not username and not password and not tid:
         if Config.has():
             sure = input("Override old configuration [y/N]: ")
             if sure.upper() != "Y":
                 return False
-    else:
-        auto = True
     reset_db()
     if not server:
         while True:
@@ -132,7 +130,7 @@ def configure(server=None, username=None, password=None, tid=None):
             return False
         break
     if tid:
-        select(course=True, tid=tid, auto=True)
+        select(course=True, tid=tid, auto=auto)
     else:
         select(course=True)
 
