@@ -48,7 +48,7 @@ def test_configure():
     """
     _, _, ex = run_command(
         ["configure", "-u", username, "-p", password, "-s", server_uri,
-         "-i", course_id]
+         "-i", course_id, "--auto"]
     )
     assert ex is None
 
@@ -173,7 +173,7 @@ def test_submit_fail():
     assert wasexit == True
     assert "Results:" in stdout
     uri = os.getenv("TMC_URI", server_uri)
-    assert "URL: " + uri + "submissions/" in stdout
+    assert "Submission URL: " + uri + "submissions/" in stdout
     assert "Pastebin: " + uri + "paste/" not in stdout
     assert "Requested a review" not in stdout
     assert "\033[31m" in stderr and "\033[0m" in stderr
@@ -196,10 +196,10 @@ def test_submit_success():
         wasexit = True
     assert wasexit == False
     assert "Results:" in stdout
-    assert "\033[32mPoints [1]\033[0m" in stdout
+    assert "Points [1]" in stdout
     assert "Requested a review" in stdout
     uri = os.getenv("TMC_URI", server_uri)
-    assert "URL: " + uri + "submissions/" in stdout
+    assert "Submission URL: " + uri + "submissions/" in stdout
     assert "Pastebin: " + uri + "paste/" in stdout
 
     assert len(stderr) == 0

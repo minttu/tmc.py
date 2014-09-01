@@ -192,12 +192,10 @@ def skip(course, num=1):
         pass
 
     if sel is None:
-        for i in course.exercises:
-            sel = i
-            break
+        sel = course.exercises.first()
     else:
         try:
-            sel = Exercise.byid(sel.id + num)
+            sel = Exercise.get(Exercise.id == sel.id + num)
         except peewee.DoesNotExist:
             print("There are no more exercises in this course.")
             return False
@@ -276,7 +274,7 @@ def select(course=False, tid=None, auto=False):
         ret = {}
         if not tid:
             ret = Menu.launch("Select an exercise",
-                              Course.get_selected(),
+                              Course.get_selected().exercises,
                               selected)
         else:
             ret["item"] = Exercise.byid(tid)
@@ -349,7 +347,7 @@ def list_all(course, single=None):
         (len(str(course.exercises[0].tid)) - 1) * " "
     ))
     if single:
-        print(format(single))
+        print(format_line(single))
         return
     for exercise in course.exercises:
         # ToDo: use a pager

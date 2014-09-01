@@ -4,7 +4,7 @@ from tmc.version import __version__ as version
 username = "tmc.py"
 # password = something here
 # What server to test against
-server_uri = "https://tmc.mooc.fi/test/"
+server_uri = "https://tmc.mooc.fi/staging/"
 course_id = "1"
 exercise_id = "2"
 
