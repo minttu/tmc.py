@@ -81,7 +81,7 @@ function install-tmcpy() {
     echo "If you have no clue what all this is about,"
     echo "just hit return (or answer 'y') and enjoy the ride."
     echo
-    read -p "Proceed to make automatic modifications? [y/n] " yn;
+    read -p "Proceed to make automatic modifications? [y/n] " yn < /dev/tty;
     hrline
     case $yn in
         [Nn]* ) echo "Alright then! Make sure you add the line:" ;
@@ -111,7 +111,7 @@ if [ -d $VENVPATH ] || [ -f $BINPATH/tmc ]
 then
     while true; do
         echo "tmc.py seems to be already installed."
-        read -p "Upgrade (u), Reinstall(r), Uninstall(d) or Quit(q)? " choosed;
+        read -p "Upgrade (u), Reinstall(r), Uninstall(d) or Quit(q)? " choosed < /dev/tty;
         hrline
         case $choosed in
             [Uu]* ) pipinstall-tmcpy; exit 0;;
