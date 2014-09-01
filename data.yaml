@@ -23,6 +23,9 @@ commands:
         short: -i
         argument: ID
         description: Course ID to be used.
+      - name: --auto
+        short: -a
+        description: Skip asking for the download path.
   - name: select
     aliases:
       - sel
@@ -134,4 +137,4 @@ commands:
       - cur
     description: >
       Prints information about the currently selected exercise.
-version: 0.3.3
+version: 0.3.5

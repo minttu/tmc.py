@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>tmc.py</title>
+    <link href='http://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+    <style>
+
+body {
+    font-family: 'Arimo', sans-serif;
+}
+pre {
+    margin-left: 2rem;
+    background-color: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+div {
+    max-width: 50rem;
+    margin: 0 auto;
+}
+.asciicast {
+    margin: 20px auto !important;
+    width: 586px;
+}
+h1 {
+    text-align: center;
+    border-bottom: thin solid #999;
+}
+footer {
+    text-align: center;
+}
+footer>a {
+    color: blue;
+    text-decoration: none;
+    padding: 0.5rem;
+}
+    </style>
+</head>
+<body>
+    <div>
+        <h1>tmc.py usage</h1>
+
+        <h2>Installation</h2>
+        <h3>If you have root access</h3>
+        <p>
+            You will need <code>python3.2</code>+ and <code>pip3</code> installed.
+        </p>
+        <pre><code>sudo pip3 install tmc</code></pre>
+        <h3>If you don't have root access</h3>
+        <p>
+            You will need <code>python3.2</code>+ and <code>python-virtualenv</code> installed.
+        </p>
+        <pre><code>curl -L https://rawgit.com/JuhaniImberg/tmc.py/master/tmcpy-inst.sh | bash</code></pre>
+
+        <script type="text/javascript" src="https://asciinema.org/a/11868.js" id="asciicast-11868" async data-speed="16"></script>
+
+        <h2>Getting started</h2>
+        <p>
+            After you have installed <code>tmc.py</code>, you should run
+        </p>
+        <pre><code>tmc configure</code></pre>
+        <p>
+            It will prompt you for the TMC servers address (for example <code>https://tmc.mooc.fi/mooc/</code>, username, password, a course and a download path for the exercises.
+        </p>
+        <script type="text/javascript" src="https://asciinema.org/a/11861.js" id="asciicast-11861" async data-speed="2"></script>
+
+        <h2>Downloading</h2>
+        <p>
+            If you have already completed some exercises you can download the remaining ones with
+        </p>
+        <pre><code>tmc download</code></pre>
+        <p>
+            You can download all of the currently available exercises with
+        </p>
+        <pre><code>tmc download --all</code></pre>
+        <script type="text/javascript" src="https://asciinema.org/a/11860.js" id="asciicast-11860" async data-speed="2"></script>
+        <p>
+            The exercises will be placed in the courses download path.
+        </p>
+
+        <h2>Selecting a exercise</h2>
+        <p>
+            In <code>tmc.py</code> you always have a selected exercise. The selection can be changed with
+        </p>
+        <pre><code>tmc select</code></pre>
+
+        <p>
+            You can move to the next exercise with
+        </p>
+        <pre><code>tmc next</code></pre>
+
+        <p>
+            You can move to the previous exercise with
+        </p>
+        <pre><code>tmc previous</code></pre>
+
+        <p>
+            You can see what exercise you have selected with
+        </p>
+        <pre><code>tmc current</code></pre>
+
+        <p>
+            Or you can see all of the exercises in the current course with
+        </p>
+        <pre><code>tmc ls</code></pre>
+
+        <script type="text/javascript" src="https://asciinema.org/a/11862.js" id="asciicast-11862" async data-speed="1"></script>
+
+
+        <h2>Testing</h2>
+        <p>
+            You can test the currently selected exercise with
+        </p>
+        <pre><code>tmc test</code></pre>
+
+        <script type="text/javascript" src="https://asciinema.org/a/11865.js" id="asciicast-11865" async data-speed="1"></script>
+
+        <p>
+            If testing fails <code>tmc test</code> will print the errors. However if it's successful it will just print <code>OK</code>.
+        </p>
+
+        <h2>Submitting</h2>
+        <p>
+            You can submit the selected exercise with
+        </p>
+        <pre><code>tmc submit</code></pre>
+
+        <p>
+            You can also send the submission to TMC pastebin with
+        </p>
+        <pre><code>tmc submit --paste</code></pre>
+
+        <p>
+            You can also request a code review with
+        </p>
+        <pre><code>tmc submit --review</code></pre>
+
+        <script type="text/javascript" src="https://asciinema.org/a/11867.js" id="asciicast-11867" async data-speed="2"></script>
+
+        <footer>
+            <a href="https://github.com/JuhaniImberg/tmc.py/">GitHub</a>
+            <a href="https://JuhaniImberg.github.io/tmc.py/">Full documentation</a>
+        </footer>
+
+
+    </div>
+</body>
+</html>
