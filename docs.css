@@ -60,7 +60,7 @@ footer {
     margin: 1em;
 }
 
-a[href^="https://github.com/"] {
+a[href^="https://github.com/"], a[href^="https://JuhaniImberg.github.io/"] {
     font-size: 70%;
 }
 
