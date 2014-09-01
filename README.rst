@@ -7,41 +7,22 @@ server`_. It aims to have all of the features of `tmc-netbeans`_.
 installation
 ------------
 
-Requires Python 3.2+ and pip.
+Requires ``Python 3.2``+ and ``pip`` / ``virtualenv``. If you have root access
 
 ::
 
-    pip3 install git+https://github.com/JuhaniImberg/tmc.py.git
+    sudo pip3 install tmc
 
-or
+otherwise
 
 ::
 
-    pip3 install tmc
+    curl -L https://rawgit.com/JuhaniImberg/tmc.py/master/tmcpy-inst.sh | bash
 
-usage
------
+tutorial / usage
+----------------
 
 `See here`_
-
-example
--------
-
-::
-
-    while course is not completed:
-        tmc run subl3 && tmc test && tmc submit && tmc next
-
-testing
--------
-
-You will need to install nose. (``pip install nose``)
-
-::
-
-    TMC_PASSWORD=PUTITHERE TMC_USERNAME=PUTITHERE nosetests -v --nologcapture
-
-more options in ``testsetup.py``
 
 license
 -------
@@ -51,4 +32,4 @@ MIT, see ``LICENSE``
 .. _docs: https://JuhaniImberg.github.io/tmc.py/
 .. _TestMyCode server: https://github.com/testmycode/tmc-server
 .. _tmc-netbeans: https://github.com/testmycode/tmc-netbeans
-.. _See here: https://JuhaniImberg.github.io/tmc.py/
+.. _See here: https://JuhaniImberg.github.io/tmc.py/tutorial.html
