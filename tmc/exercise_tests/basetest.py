@@ -1,7 +1,8 @@
 import os
-import sys
 from subprocess import PIPE, Popen
 
+from tmc import conf
+from tmc.coloring import errormsg, successmsg
 from tmc.errors import MissingProgram, NoSuitableTestFound, NotDownloaded
 from tmc.ui.spinner import Spinner
 
@@ -11,16 +12,19 @@ class TestResult(object):
     Holds a testing result.
     """
 
-    def __init__(self, success=True, error=""):
+    def __init__(self, success=True, error="", successes=""):
         self.success = success
         self.error = error
+        self.successes = successes
 
     def format(self):
+        if len(self.successes) > 0 and conf.show_successful_tests():
+            successmsg(self.successes, end="")
         if len(self.error) > 0:
-            sys.stderr.write("\033[31m{}\033[0m".format(self.error))
+            errormsg(self.error, end="")
         if not self.success:
             return False
-        sys.stdout.write("\033[32mOK!\033[0m\n")
+        successmsg("OK!")
 
 
 class BaseTest(object):

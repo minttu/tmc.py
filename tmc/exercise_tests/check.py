@@ -26,5 +26,7 @@ class CheckTest(BaseTest):
             if test.get("result") == "failure":
                 ret.success = False
                 ret.error += test.find(ns + "message").text + "\n"
+            else:
+                ret.successes += test.find(ns + "description").text + "\n"
 
         return ret

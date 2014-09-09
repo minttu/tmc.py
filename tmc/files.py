@@ -3,10 +3,9 @@ import time
 import zipfile
 from io import BytesIO
 
-from tmc import api
+from tmc import api, conf
 from tmc.errors import NotDownloaded, TMCError, WrongExerciseType
 from tmc.ui.spinner import Spinner
-
 from tmc.coloring import successmsg, warningmsg, errormsg, infomsg
 
 
@@ -111,7 +110,8 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         warningmsg("------------------")
         for test in data["test_cases"]:
             if test["successful"]:
-                successmsg("{name}: {message}\n".format(**test))
+                if conf.show_successful_tests():
+                    successmsg("{name}: {message}".format(**test))
             else:
                 errormsg("{name}:\n  {message}".format(**test))
 

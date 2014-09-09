@@ -2,6 +2,10 @@ import curses
 import math
 from curses import panel
 
+from tmc import conf
+
+use_unicode = conf.use_unicode_characters()
+
 
 class Menu:
 
@@ -25,7 +29,11 @@ class Menu:
         if self.position + 2 >= height:
             self.offset = self.position - 1
 
-        self.title = "┤ {0} (q to cancel) ├".format(title)
+        if use_unicode:
+            self.title = "┤ {0} (q to cancel) ├".format(title)
+        else:
+            self.title = "| {0} (q to cancel) |".format(title)
+
         self.window.keypad(1)
         self.panel = panel.new_panel(self.window)
         self.panel.hide()
@@ -45,7 +53,10 @@ class Menu:
         self.window.clear()
         self.window.refresh()
         self.window.bkgd(' ')
-        self.window.border()
+        if use_unicode:
+            self.window.border()
+        else:
+            self.window.border("|", "|", "-", "-", "+", "+", "+", "+")
         width = self.window.getmaxyx()[1]
         self.window.addstr(0, int((width - len(self.title)) / 2), self.title)
         height = self.window.getmaxyx()[0] - 1
@@ -59,11 +70,15 @@ class Menu:
                                    "{0}".format(item.menuname()), style)
         scroll = math.floor((self.position / len(self.items)) * (height - 3))
         for i in range(0, height - 3):
-            char = "█" if i == scroll else "░"
+            if i == scroll:
+                char = "█" if use_unicode else "#"
+            else:
+                char = "░" if use_unicode else "-"
             self.window.addstr(
                 i + 2, width - 1, char)
-        self.window.addstr(1, width - 1, "┴")
-        self.window.addstr(height - 1, width - 1, "┬")
+        if use_unicode:
+            self.window.addstr(1, width - 1, "┴")
+            self.window.addstr(height - 1, width - 1, "┬")
 
     def wait_for_input(self):
         key = self.window.getch()

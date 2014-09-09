@@ -1,9 +1,11 @@
+from functools import partial
+
 from requests import request
 from requests.exceptions import RequestException
-from functools import partial
 
 from tmc.errors import APIError
 from tmc.models import Config
+
 
 # from tmc.version import __version__
 

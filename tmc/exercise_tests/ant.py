@@ -29,7 +29,9 @@ class AntTest(BaseTest):
                     root = ET.parse(test).getroot()
                     for testcase in root.findall("testcase"):
                         for failure in testcase.findall("failure"):
-                            ret.error += failure.text + "\n"
+                            ret.error += failure.text
+                        if len(testcase.findall("failure")) == 0:
+                            ret.successes += testcase.get("name") + "\n"
             # Otherwise we had a compile error, so lets go through stdout
             else:
                 for line in out.split("\n"):

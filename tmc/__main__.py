@@ -8,9 +8,9 @@ from getpass import getpass
 from subprocess import Popen
 
 import peewee
-
 import argh
 from argh.decorators import aliases, arg
+
 from tmc import api
 from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
                         TMCError, TMCExit)
@@ -21,6 +21,7 @@ from tmc.ui.menu import Menu
 from tmc.ui.prompt import custom_prompt, yn_prompt
 from tmc.ui.spinner import Spinner
 from tmc.version import __version__
+
 
 try:
     from subprocess import DEVNULL
@@ -81,8 +82,7 @@ def configure(server=None, username=None, password=None, tid=None, auto=False):
     """
     if not server and not username and not password and not tid:
         if Config.has():
-            sure = input("Override old configuration [y/N]: ")
-            if sure.upper() != "Y":
+            if not yn_prompt("Override old configuration", False):
                 return False
     reset_db()
     if not server:

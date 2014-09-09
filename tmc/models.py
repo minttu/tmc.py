@@ -2,6 +2,7 @@ import os
 
 from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
                     IntegerField, Model, SqliteDatabase, DoesNotExist)
+
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
 # SqliteDatabase will fail if there is no ~/.config

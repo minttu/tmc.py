@@ -2,12 +2,14 @@
 Contains various test for nosetest.
 """
 
-from tmc.__main__ import run_command
-from tmc.errors import TMCExit
-from tmc.version import __version__ as version
 import os
 import sys
 from os import path
+
+from tmc.__main__ import run_command
+from tmc.errors import TMCExit
+from tmc.version import __version__ as version
+
 
 sys.path.append(os.getcwd())
 from testsetup import (username, server_uri, course_id, exercise_id,
