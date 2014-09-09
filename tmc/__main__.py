@@ -361,9 +361,8 @@ def update(course=False):
     Update the metadata of courses and or exercises from server.
     """
     if course:
-        @Spinner.decorate("Updated course metadata.",
-                          waitmsg="Updating course metadata.")
-        def update_course():
+        with Spinner.context(msg="Updated course metadata.",
+                             waitmsg="Updating course metadata."):
             for course in api.get_courses():
                 old = None
                 try:
@@ -372,15 +371,12 @@ def update(course=False):
                     old = None
                 if old:
                     continue
-                Course.create(tid=course["id"],
-                              name=course["name"])
-        update_course()
+                Course.create(tid=course["id"], name=course["name"])
     else:
         selected = Course.get_selected()
 
-        @Spinner.decorate("Updated exercise metadata.",
-                          waitmsg="Updating exercise metadata.")
-        def update_exercise():
+        with Spinner.context(msg="Updated exercise metadata.",
+                             waitmsg="Updating exercise metadata."):
             for exercise in api.get_exercises(selected.tid):
                 old = None
                 try:
@@ -404,7 +400,6 @@ def update(course=False):
                                          deadline=exercise.get("deadline"))
                     ex.is_downloaded = os.path.isdir(ex.path())
                     ex.save()
-        update_exercise()
 
 
 @selected_course
@@ -452,6 +447,12 @@ commands = [select, update, download, test, submit, skip, current, previous,
 def main():
     parser = argh.ArghParser()
     parser.add_commands(commands)
+
+    # By default Argh only shows shortened help when no command is given.
+    # This makes it print out the full help instead.
+    if len(sys.argv) == 1:
+        return parser.dispatch(argv=["help"])
+
     try:
         parser.dispatch()
     except TMCError as e:

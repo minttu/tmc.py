@@ -2,6 +2,7 @@ import functools
 import sys
 import threading
 import time
+from contextlib import contextmanager
 
 
 class Spinner(threading.Thread):
@@ -29,6 +30,22 @@ class Spinner(threading.Thread):
                          + self.msg + " " * (len(self.template) - 2) + "\n")
         sys.stdout.flush()
         self.index = 0
+
+    @staticmethod
+    @contextmanager
+    def context(msg="", waitmsg="Please wait"):
+        spin = Spinner(msg=msg, waitmsg=waitmsg)
+        spin.start()
+        try:
+            yield
+        except Exception as e:
+            spin.msg = "Something went wrong: "
+            spin.stop_spinning()
+            spin.join()
+            raise e
+        spin.stop_spinning()
+        spin.join()
+
 
     @staticmethod
     def decorate(msg="", waitmsg="Please wait"):

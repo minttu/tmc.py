@@ -26,15 +26,13 @@ def download_exercise(exercise, force=False, update_java=False):
                 pass
         return
 
-    @Spinner.decorate("Downloaded.", waitmsg="Downloading.")
-    def inner(exercise):
+    with Spinner.context(msg="Downloaded.", waitmsg="Downloading."):
         tmpfile = BytesIO()
         api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
         zipfp.extractall(outpath)
         exercise.is_downloaded = True
         exercise.save()
-    inner(exercise)
 
     if update_java:
         try:
@@ -74,9 +72,10 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     if pastebin:
         params["paste"] = "wolololo"
 
-    @Spinner.decorate("Submission has been sent.",
-                      waitmsg="Sending submission.")
-    def inner():
+    resp = None
+
+    with Spinner.context(msg="Submission has been sent.",
+                         waitmsg="Sending submission."):
         tmpfile = BytesIO()
         zipfp = zipfile.ZipFile(tmpfile, "w")
         for root, _, files in os.walk(outpath):
@@ -86,8 +85,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
                                             os.path.join(outpath, '..')),
                             zipfile.ZIP_DEFLATED)
         zipfp.close()
-        return api.send_zip(exercise.tid, tmpfile.getvalue(), params)
-    resp = inner()
+        resp = api.send_zip(exercise.tid, tmpfile.getvalue(), params)
 
     if "submission_url" not in resp:
         return
@@ -95,7 +93,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     url = resp["submission_url"]
     submission_id = int(url.split(".json")[0].split("submissions/")[1])
 
-    @Spinner.decorate("Results:", "Waiting for results.")
+    @Spinner.decorate(msg="Results:", waitmsg="Waiting for results.")
     def inner():
         while True:
             data = api.get_submission(submission_id)
