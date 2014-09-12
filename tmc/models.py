@@ -5,13 +5,16 @@ from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
 
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
-# SqliteDatabase will fail if there is no ~/.config
-if not os.path.isdir(os.path.join(os.path.expanduser("~"), ".config")):
-    os.mkdir(os.path.join(os.path.expanduser("~"), ".config"), 0o700)
+target_file = os.environ.get("TMC_DATABASEFILE",
+                            os.path.join(os.path.expanduser("~"),
+                                         ".config",
+                                         "tmc.db"))
 
-sqlite = SqliteDatabase(
-    os.path.join(os.path.expanduser("~"), ".config", "tmc.db")
-)
+# SqliteDatabase will fail if the parent directory isn't there.
+if not os.path.isdir(os.path.dirname(target_file)):
+    os.mkdir(os.path.dirname(target_file), 0o700)
+
+sqlite = SqliteDatabase(target_file)
 sqlite.connect()
 
 

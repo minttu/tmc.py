@@ -1,4 +1,4 @@
-from os import path
+from os import path, environ
 from configparser import ConfigParser
 
 
@@ -13,7 +13,10 @@ class Config(object):
     """
 
     def __init__(self):
-        self.filename = path.join(path.expanduser("~"), ".config", "tmc.ini")
+        self.filename = environ.get("TMC_CONFIGFILE",
+                                    path.join(path.expanduser("~"),
+                                              ".config",
+                                              "tmc.ini"))
         self.config = ConfigParser()
 
         if self._exists():
