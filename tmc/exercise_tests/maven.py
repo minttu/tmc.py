@@ -27,9 +27,16 @@ class MavenTest(BaseTest):
                 for test in tests:
                     root = ET.parse(test).getroot()
                     for testcase in root.findall("testcase"):
+                        fail = False
                         for failure in testcase.findall("failure"):
-                            ret.error += failure.text + "\n"
-                        if len(testcase.findall("failure")) == 0:
+                            ret.error += testcase.get("name") + ": " \
+                                + failure.get("message") + "\n"
+                            fail = True
+                        for error in testcase.findall("error"):
+                            ret.error += testcase.get("name") + ": " \
+                                + error.get("message") + "\n"
+                            fail = True
+                        if not fail:
                             ret.successes += testcase.get("name") + "\n"
             # Otherwise we had a compile error, so lets go through stdout
             else:
