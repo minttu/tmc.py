@@ -124,6 +124,8 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         successmsg("---------------------")
         points = ", ".join(data["points"])
         successmsg("Points [{0}]".format(points))
+        exercise.is_completed = exercise.is_attempted = True
+        exercise.save()
 
     elif status == "error":
         warningmsg("Something went wrong :(")
