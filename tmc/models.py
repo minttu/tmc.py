@@ -6,9 +6,9 @@ from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
 target_file = os.environ.get("TMC_DATABASEFILE",
-                            os.path.join(os.path.expanduser("~"),
-                                         ".config",
-                                         "tmc.db"))
+                             os.path.join(os.path.expanduser("~"),
+                                          ".config",
+                                          "tmc.db"))
 
 # SqliteDatabase will fail if the parent directory isn't there.
 if not os.path.isdir(os.path.dirname(target_file)):
@@ -154,6 +154,14 @@ class Config(BaseModel):
     @staticmethod
     def get_value(name):
         return Config.get(Config.name == name).value
+
+    @staticmethod
+    def has_name(name):
+        try:
+            Config.get(Config.name == name)
+            return True
+        except DoesNotExist:
+            return False
 
     @staticmethod
     def has():

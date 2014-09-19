@@ -17,6 +17,7 @@ from tmc.errors import (APIError, NoCourseSelected, NoExerciseSelected,
 from tmc.exercise_tests.basetest import run_test
 from tmc.files import download_exercise, submit_exercise
 from tmc.models import Config, Course, Exercise, reset_db
+from tmc.coloring import infomsg
 from tmc.ui.menu import Menu
 from tmc.ui.prompt import custom_prompt, yn_prompt
 from tmc.ui.spinner import Spinner
@@ -67,6 +68,26 @@ def false_exit(func):
                 sys.exit(-1)
         return ret
     return inner
+
+
+def check_for_updates():
+    from xmlrpc.client import ServerProxy
+    from distutils.version import StrictVersion
+    pypi = ServerProxy("http://pypi.python.org/pypi")
+    version = StrictVersion(__version__)
+    pypiversion = StrictVersion(pypi.package_releases("tmc")[0])
+    if pypiversion > version:
+        infomsg("There is a new version available. ({})".format(pypiversion))
+        print("You can upgrade tmc.py with either of these ways, depending",
+              "on the way you installed tmc.py in the first place.",
+              "\nIf you installed it with pip:",
+              "\n    sudo pip install --upgrade tmc",
+              "\nIf you installed it with the installation script:",
+              "\n    Run the script again and select upgrade.")
+    elif pypiversion < version:
+        print("You are running a newer version than available.")
+    else:
+        print("You are running the most current version.")
 
 
 @aliases("init", "conf")
@@ -440,13 +461,62 @@ def version():
     print("tmc.py version {0}".format(__version__))
     print("Copyright 2014 tmc.py contributors")
 
+
+def should_update():
+    from xmlrpc.client import ServerProxy
+    from distutils.version import StrictVersion
+    from datetime import datetime
+    import calendar
+
+    current_version = StrictVersion(__version__)
+    last_value = Config.has_name("needs_update") \
+        and Config.get_value("needs_update") == "1"
+    last_version = (0,0,0)
+    if Config.has_name("last_version"):
+        last_version = StrictVersion(Config.get_value("last_version"))
+
+    # Return false if an upgrade has happened
+    if last_value and (last_version < current_version):
+        return False
+
+    Config.set("last_version", __version__)
+
+    # Next lets check the time
+    last_time = None
+    if Config.has_name("last_update_check"):
+        last_time = datetime.utcfromtimestamp(int(
+            Config.get_value("last_update_check")))
+    else:
+        last_time = datetime.now()
+
+    if (last_time - datetime.now()).days < 7:
+        return False
+
+    Config.set("last_update_check",
+               calendar.timegm(datetime.now().timetuple()))
+
+    # Lastly lets check pypi for versions
+    pypi = ServerProxy("http://pypi.python.org/pypi")
+    pypiversion = StrictVersion(pypi.package_releases("tmc")[0])
+
+    if pypiversion > current_version:
+        return True
+    return False
+
+
 commands = [select, update, download, test, submit, skip, current, previous,
-            reset, configure, version, list_all, run]
+            reset, configure, version, list_all, run, check_for_updates]
 
 
 def main():
     parser = argh.ArghParser()
     parser.add_commands(commands)
+
+    needs_update = should_update()
+    Config.set("needs_update", "1" if needs_update else "0")
+    if needs_update:
+        infomsg("Update available to tmc.py. See tmc check-for-updates",
+                "for more info.")
 
     # By default Argh only shows shortened help when no command is given.
     # This makes it print out the full help instead.
