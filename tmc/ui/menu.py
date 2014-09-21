@@ -4,7 +4,7 @@ from curses import panel
 
 from tmc import conf
 
-use_unicode = conf.use_unicode_characters()
+use_unicode = conf.use_unicode_characters
 
 
 class Menu:
