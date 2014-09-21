@@ -95,7 +95,8 @@ def check_for_updates():
 @arg("-u", "--username", help="Username to be used.")
 @arg("-p", "--password", help="Password to be used.")
 @arg("-i", "--id", dest="tid", help="Course ID to be used.")
-@arg("-a", "--auto", action="store_true", help="Don't prompt for download path, use default instead")
+@arg("-a", "--auto", action="store_true",
+     help="Don't prompt for download path, use default instead")
 @false_exit
 def configure(server=None, username=None, password=None, tid=None, auto=False):
     """
@@ -469,9 +470,9 @@ def should_update():
     import calendar
 
     current_version = StrictVersion(__version__)
-    last_value = Config.has_name("needs_update") \
-        and Config.get_value("needs_update") == "1"
-    last_version = (0,0,0)
+    last_value = (Config.has_name("needs_update")
+                  and Config.get_value("needs_update") == "1")
+    last_version = (0, 0, 0)
     if Config.has_name("last_version"):
         last_version = StrictVersion(Config.get_value("last_version"))
 
