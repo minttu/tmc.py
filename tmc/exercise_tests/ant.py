@@ -15,38 +15,41 @@ class AntTest(BaseTest):
 
     def test(self, exercise):
         returncode, out, err = self.run(["ant", "clean", "test"], exercise)
-        ret = TestResult(success=(returncode == 0))
+        ret = []
 
         if returncode != 0:
-            tests = glob(path.join(exercise.path(),
-                                   "build",
-                                   "test",
-                                   "results",
+            tests = glob(path.join(exercise.path(), "build", "test", "results",
                                    "*.xml"))
             # If we have some results the compile went well
             if len(tests) > 0:
                 for test in tests:
                     root = ET.parse(test).getroot()
                     for testcase in root.findall("testcase"):
-                        fail = False
-                        for failure in testcase.findall("failure"):
-                            ret.error += testcase.get("name") + ": " \
-                                + failure.get("message") + "\n"
-                            fail = True
-                        for error in testcase.findall("error"):
-                            ret.error += testcase.get("name") + ": " \
-                                + error.get("message") + "\n"
-                            fail = True
-                        if not fail:
-                            ret.successes += testcase.get("name") + "\n"
+                        success = True
+                        name = testcase.get("name")
+                        message = None
+                        trace = None
+                        time = testcase.get("time", 0)
+                        # any child existing = failure
+                        for child in testcase:
+                            success = False
+                            message = child.get("message")
+                            trace = child.text
+                        ret.append(TestResult(success=success, name=name,
+                                              message=message, trace=trace,
+                                              time=time))
             # Otherwise we had a compile error, so lets go through stdout
             else:
-                for line in out.split("\n"):
-                    if "[javac] " in line:
-                        ret.error += line.split("[javac] ")[1] + "\n"
-            # If there still is no error, let's just hope theres something in
-            # stderr to tell (such as that javac not found)
-            if len(ret.error) == 0:
-                ret.error = err
-
+                msg = ""
+                if "[javac]" in out:
+                    for line in out.split("\n"):
+                        if "[javac] " in line:
+                            msg += line.split("[javac] ")[1] + "\n"
+                else:
+                    msg = out
+                ret.append(TestResult(success=False, name="Compile error",
+                                      message=msg))
+            if len(ret) == 0:
+                ret.append(TestResult(success=False, name="Unknown error",
+                                      message=err))
         return ret
