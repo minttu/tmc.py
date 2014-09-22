@@ -1,5 +1,6 @@
 from os import path, environ
 from configparser import ConfigParser
+from collections import OrderedDict
 
 
 class Config(object):
@@ -12,14 +13,9 @@ class Config(object):
     lacking?
     """
 
-    defaults = {"use_unicode_characters": True,
-                "use_ansi_colors": True,
-                "tests_show_trace": False,
-                "tests_show_partial_trace": False,
-                "tests_show_time": True,
-                "tests_show_successful": True}
     config = None
     filename = ""
+    defaults = None
 
     def __init__(self):
         super().__setattr__('filename',
@@ -28,22 +24,32 @@ class Config(object):
                                                   ".config",
                                                   "tmc.ini")))
         super().__setattr__('config', ConfigParser())
+        self._update_defaults()
 
         self.config["CONFIGURATION"] = {}
+
         for i in self.defaults:
             self.config["CONFIGURATION"][i] = str(self.defaults[i])
-
         if self._exists():
             self._load()
-        else:
-            self._create_with_defaults()
+
+        self._write()
+
+    def _update_defaults(self):
+        defaults = OrderedDict()
+        defaults["use_unicode_characters"] = True
+        defaults["use_ansi_colors"] = True
+        defaults["tests_show_trace"] = False
+        defaults["tests_show_partial_trace"] = False
+        defaults["tests_show_time"] = True
+        defaults["tests_show_successful"] = True
+        super().__setattr__('defaults', defaults)
 
     def _exists(self):
         return path.isfile(self.filename)
 
-    def _create_with_defaults(self):
+    def _write(self):
         with open(self.filename, "w") as fp:
-            print("Created configuration file to {}".format(self.filename))
             self.config.write(fp)
 
     def _load(self):
