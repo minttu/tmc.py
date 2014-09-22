@@ -5,21 +5,32 @@ from os import path
 from tmc.exercise_tests.basetest import BaseTest, TestResult
 
 
-class AntTest(BaseTest):
+class JavaTest(BaseTest):
 
     def __init__(self):
-        super().__init__("Ant")
+        super().__init__("Java")
 
     def applies_to(self, exercise):
-        return path.isfile(path.join(exercise.path(), "build.xml"))
+        if path.isfile(path.join(exercise.path(), "pom.xml")):
+            self.name = "Maven"
+        elif path.isfile(path.join(exercise.path(), "build.xml")):
+            self.name = "Ant"
+        else:
+            return False
+        return True
 
     def test(self, exercise):
-        returncode, out, err = self.run(["ant", "clean", "test"], exercise)
+        prog = "ant" if self.name == "Ant" else "mvn"
+        returncode, out, err = self.run([prog, "clean", "test"], exercise)
         ret = []
 
         if returncode != 0:
-            tests = glob(path.join(exercise.path(), "build", "test", "results",
-                                   "*.xml"))
+            if self.name == "Ant":
+                tests = glob(path.join(exercise.path(), "build", "test",
+                                       "results", "*.xml"))
+            else:
+                tests = glob(path.join(exercise.path(), "target",
+                                       "surefire-reports", "*.xml"))
             # If we have some results the compile went well
             if len(tests) > 0:
                 for test in tests:
@@ -40,11 +51,12 @@ class AntTest(BaseTest):
                                               time=time))
             # Otherwise we had a compile error, so lets go through stdout
             else:
+                split = "[javac]" if self.name == "Ant" else "[ERROR]"
                 msg = ""
-                if "[javac]" in out:
+                if split in out:
                     for line in out.split("\n"):
-                        if "[javac] " in line:
-                            msg += line.split("[javac] ")[1] + "\n"
+                        if split + " " in line:
+                            msg += line.split(split + " ")[1] + "\n"
                 else:
                     msg = out
                 ret.append(TestResult(success=False, name="Compile error",

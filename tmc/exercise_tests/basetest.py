@@ -110,4 +110,7 @@ def run_test(exercise):
         if not i.success:
             result = False
         i.print()
+    if result:
+        successmsg("OK!")
+        return None
     return result
