@@ -10,5 +10,10 @@ tmc.py contributors
    -  Cleanup
    -  Bugfixes
 
+-  `Jaakko Hannikainen`_
+
+   -  Refactoring
+
 .. _Juhani Imberg: https://github.com/JuhaniImberg
 .. _Markus Holmström: https://github.com/MawKKe
+.. _Jaakko Hannikainen: https://github.com/jgke

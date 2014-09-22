@@ -1,5 +1,6 @@
 from os import path, environ
 from configparser import ConfigParser
+from collections import OrderedDict
 
 
 class Config(object):
@@ -12,48 +13,56 @@ class Config(object):
     lacking?
     """
 
-    def __init__(self):
-        self.filename = environ.get("TMC_CONFIGFILE",
-                                    path.join(path.expanduser("~"),
-                                              ".config",
-                                              "tmc.ini"))
-        self.config = ConfigParser()
+    config = None
+    filename = ""
+    defaults = None
 
+    def __init__(self):
+        super().__setattr__('filename',
+                            environ.get("TMC_CONFIGFILE",
+                                        path.join(path.expanduser("~"),
+                                                  ".config",
+                                                  "tmc.ini")))
+        super().__setattr__('config', ConfigParser())
+        self._update_defaults()
+
+        self.config["CONFIGURATION"] = {}
+
+        for i in self.defaults:
+            self.config["CONFIGURATION"][i] = str(self.defaults[i])
         if self._exists():
             self._load()
-        else:
-            self._create_with_defaults()
+
+        self._write()
+
+    def _update_defaults(self):
+        defaults = OrderedDict()
+        defaults["use_unicode_characters"] = True
+        defaults["use_ansi_colors"] = True
+        defaults["tests_show_trace"] = False
+        defaults["tests_show_partial_trace"] = False
+        defaults["tests_show_time"] = True
+        defaults["tests_show_successful"] = True
+        super().__setattr__('defaults', defaults)
 
     def _exists(self):
         return path.isfile(self.filename)
 
-    def _create_with_defaults(self):
-        self.config["CONFIGURATION"] = {
-            "use_unicode_characters": "yes",
-            "use_ansi_colors": "yes",
-            "show_successful_tests": "yes"
-        }
+    def _write(self):
         with open(self.filename, "w") as fp:
-            print("Created configuration file to {}".format(self.filename))
             self.config.write(fp)
 
     def _load(self):
         with open(self.filename, "r") as fp:
             self.config.read_file(fp)
+        for i in self.config["CONFIGURATION"]:
+            if i not in self.defaults:
+                print("Warning: unknown configuration option: " + i)
 
-    def get(self, name, default=None):
-        # This is because getboolean handles yes and no by default. Oh and
-        # bool('false') is true.
-        if "use" in name or "show" in name:
-            return self.config["CONFIGURATION"].getboolean(name, default)
-        else:
-            return self.config["CONFIGURATION"].get(name, default)
+    def __getattr__(self, name):
+        if isinstance(self.defaults.get(name), bool):
+            return self.config["CONFIGURATION"].getboolean(name)
+        return self.config["CONFIGURATION"].get(name)
 
-    def use_unicode_characters(self):
-        return self.get("use_unicode_characters", True)
-
-    def use_ansi_colors(self):
-        return self.get("use_ansi_colors", False)
-
-    def show_successful_tests(self):
-        return self.get("show_successful_tests", False)
+    def __setattr__(self, name, value):
+        self.config["CONFIGURATION"][name] = str(value)

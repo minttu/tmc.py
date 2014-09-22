@@ -4,7 +4,7 @@ from os import getenv
 
 from tmc import conf
 
-use_colors = conf.use_ansi_colors()
+use_colors = conf.use_ansi_colors
 
 # User might want to disable all coloring
 no_coloring = getenv("TMCPY_NOCOLORING", False)

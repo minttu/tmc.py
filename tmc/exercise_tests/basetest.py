@@ -11,20 +11,42 @@ class TestResult(object):
     """
     Holds a testing result.
     """
+    name = ""
+    message = ""
+    success = False
+    time = None
+    trace = ""
 
-    def __init__(self, success=True, error="", successes=""):
+    def __init__(self, name=None, message=None, success=True,
+                 time=None, trace=None):
+        if name is None:
+            name = ""
+        if message is None:
+            message = ""
+        if trace is None:
+            trace = ""
+        self.name = name
+        self.message = message
         self.success = success
-        self.error = error
-        self.successes = successes
+        self.time = time
+        self.trace = trace
 
-    def format(self):
-        if len(self.successes) > 0 and conf.show_successful_tests():
-            successmsg(self.successes, end="")
-        if len(self.error) > 0:
-            errormsg(self.error, end="")
+    def print(self):
+        msg = self.name
+        if conf.tests_show_time and self.time is not None:
+            msg += " ({0}s)".format(self.time)
+        if self.success and conf.tests_show_trace:
+            msg += "\n"
         if not self.success:
-            return False
-        successmsg("OK!")
+            msg += ": " + self.message
+            if conf.tests_show_trace and self.trace:
+                msg += "\n" + self.trace
+            elif conf.tests_show_partial_trace and self.trace:
+                msg += "\n" + "\n".join(self.trace.split("\n")[:5])
+        if self.success and conf.tests_show_successful:
+            successmsg(msg)
+        elif not self.success:
+            errormsg(msg)
 
 
 class BaseTest(object):
@@ -83,4 +105,12 @@ def run_test(exercise):
             break
     if ret is None:
         raise NoSuitableTestFound()
-    return ret.format()
+    result = True
+    for i in ret:
+        if not i.success:
+            result = False
+        i.print()
+    if result:
+        successmsg("OK!")
+        return None
+    return result

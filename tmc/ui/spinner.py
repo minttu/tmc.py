@@ -46,7 +46,6 @@ class Spinner(threading.Thread):
         spin.stop_spinning()
         spin.join()
 
-
     @staticmethod
     def decorate(msg="", waitmsg="Please wait"):
         """
