@@ -104,6 +104,21 @@ commands:
         short: -r
         description: >
           Request a review on the exercise.
+  - name: paste
+    aliases:
+      - pa
+    description: >
+      Sends the current exercise to the TMC pastebin.
+    optional_arguments:
+      - name: --id
+        short: -i
+        argument: ID
+        description: >
+          Submit a spesific `ID`.
+      - name: --review
+        short: -r
+        description: >
+          Request a review on the exercise.
   - name: next
     aliases:
       - skip
@@ -137,4 +152,4 @@ commands:
       - cur
     description: >
       Prints information about the currently selected exercise.
-version: 0.3.5
+version: 0.3.6
