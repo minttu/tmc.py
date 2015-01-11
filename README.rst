@@ -7,7 +7,7 @@ server`_. It aims to have all of the features of `tmc-netbeans`_.
 installation
 ------------
 
-Requires ``Python 3.2``+ and ``pip`` / ``virtualenv``. If you have root access
+Requires ``Python 3.2`` + and ``pip`` / ``virtualenv``. If you have root access
 
 ::
 

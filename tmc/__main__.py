@@ -329,6 +329,17 @@ def submit(course, tid=None, pastebin=False, review=False):
         return submit_exercise(sel, pastebin=pastebin, request_review=review)
 
 
+@aliases("pa")
+@arg("-i", "--id", dest="tid", help="Submit this ID.")
+@arg("-r", "--review", default=False, action="store_true",
+     help="Request a review for this submission.")
+def paste(tid=None, review=False):
+    """
+    Sends the selected exercise to the TMC pastebin.
+    """
+    submit(pastebin=True, tid=tid, review=False)
+
+
 @aliases("te")
 @arg("-i", "--id", dest="tid", help="Test this ID.")
 @arg("-t", "--time", action="store_true",
@@ -511,7 +522,8 @@ def should_update():
 
 
 commands = [select, update, download, test, submit, skip, current, previous,
-            reset, configure, version, list_all, run, check_for_updates]
+            reset, configure, version, list_all, run, check_for_updates,
+            paste]
 
 
 def main():
