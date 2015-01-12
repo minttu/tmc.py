@@ -1,3 +1,5 @@
+import os
+
 from os import path, environ
 from configparser import ConfigParser
 from collections import OrderedDict
@@ -37,8 +39,12 @@ class Config(object):
 
     def _update_defaults(self):
         defaults = OrderedDict()
-        defaults["use_unicode_characters"] = True
-        defaults["use_ansi_colors"] = True
+        if os.name == "nt":
+            defaults["use_unicode_characters"] = False
+            defaults["use_ansi_colors"] = False
+        else:
+            defaults["use_unicode_characters"] = True
+            defaults["use_ansi_colors"] = True
         defaults["tests_show_trace"] = False
         defaults["tests_show_partial_trace"] = False
         defaults["tests_show_time"] = True

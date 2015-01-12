@@ -526,7 +526,24 @@ commands = [select, update, download, test, submit, skip, current, previous,
             paste]
 
 
+@false_exit
+def check_curses():
+    try:
+        import curses
+    except ImportError:
+        if os.name == "nt":
+            print("You seem to be running Windows. Please install curses",
+                  "from http://www.lfd.uci.edu/~gohlke/pythonlibs/#curses")
+        else:
+            print("You don't have curses installed, please install it with",
+                  "your package manager.")
+        return False
+    return True
+
+
 def main():
+    check_curses()
+
     parser = argh.ArghParser()
     parser.add_commands(commands)
 
