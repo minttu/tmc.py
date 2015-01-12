@@ -24,7 +24,7 @@ def download_exercise(exercise, force=False, update_java=False, update=False):
                 modify_java_target(exercise)
             except TMCError:
                 pass
-            return
+        return
 
     with Spinner.context(msg="Updated." if needs_update else "Downloaded.", waitmsg="Downloading."):
         tmpfile = BytesIO()
