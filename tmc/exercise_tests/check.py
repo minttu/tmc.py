@@ -24,7 +24,7 @@ class CheckTest(BaseTest):
         with open(testpath) as fp:
             xmlsrc = fp.read()
 
-        xmlsrc.replace(r"&", "&amp;")
+        xmlsrc = xmlsrc.replace(r"&", "&amp;")
 
         ns = "{http://check.sourceforge.net/ns}"
         root = ET.fromstring(xmlsrc)
