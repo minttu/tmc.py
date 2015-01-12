@@ -55,6 +55,9 @@ class Config(object):
         return path.isfile(self.filename)
 
     def _write(self):
+        d = os.path.dirname(self.filename)
+        if not os.path.exists(d):
+            os.makedirs(d)
         with open(self.filename, "w") as fp:
             self.config.write(fp)
 
