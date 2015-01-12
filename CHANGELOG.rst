@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.7
+-----
+
+* Should work on Windows better
+* Cleaner exercise tests
+
 0.3.6
 -----
 
