@@ -19,6 +19,8 @@ otherwise
 
     curl -L https://rawgit.com/JuhaniImberg/tmc.py/master/tmcpy-inst.sh | bash
 
+If you are running a Windows OS, please install `curses`_ for Python.
+
 tutorial / usage
 ----------------
 
@@ -33,3 +35,4 @@ MIT, see ``LICENSE``
 .. _TestMyCode server: https://github.com/testmycode/tmc-server
 .. _tmc-netbeans: https://github.com/testmycode/tmc-netbeans
 .. _See here: https://JuhaniImberg.github.io/tmc.py/tutorial.html
+.. _curses: http://www.lfd.uci.edu/~gohlke/pythonlibs/#curses
