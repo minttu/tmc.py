@@ -26,7 +26,8 @@ def download_exercise(exercise, force=False, update_java=False, update=False):
                 pass
         return
 
-    with Spinner.context(msg="Updated." if needs_update else "Downloaded.", waitmsg="Downloading."):
+    with Spinner.context(msg="Updated." if needs_update else "Downloaded.",
+                         waitmsg="Downloading."):
         tmpfile = BytesIO()
         api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)

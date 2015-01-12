@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.8
+-----
+
+* Test updating is back with ``tmc update`` or ``tmc download --update``
+* Possible workaround for XML escaping
+
 0.3.7
 -----
 
