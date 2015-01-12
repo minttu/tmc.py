@@ -45,7 +45,7 @@ commands:
     aliases:
       - up
     description: >
-      Update the exercise metadata of the selected course.
+      Update the exercise data of the selected course.
     optional_arguments:
       - name: --course
         short: -c
@@ -61,8 +61,12 @@ commands:
         short: -f
         description: >
           Download ontop of older exercises, removing progress.
-      - name: --upgrade
+      - name: --update
         short: -u
+        description: >
+          Updates the exercises tests, doesn't affect progress.
+      - name: --upgradejava
+        short: -j
         description: >
           If the exercise is for Java 1.6, the target will be updated to 1.7.
       - name: --id
@@ -152,4 +156,4 @@ commands:
       - cur
     description: >
       Prints information about the currently selected exercise.
-version: 0.3.6
+version: 0.3.8
