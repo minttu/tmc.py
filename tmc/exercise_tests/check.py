@@ -1,3 +1,5 @@
+import re
+
 import xml.etree.ElementTree as ET
 from os import path
 
@@ -18,13 +20,13 @@ class CheckTest(BaseTest):
 
         testpath = path.join(exercise.path(), "test", "tmc_test_results.xml")
         if not path.isfile(testpath):
-            return [TestResult(False, err)]
+            return [TestResult(success=False, message=err)]
 
         xmlsrc = ""
         with open(testpath) as fp:
             xmlsrc = fp.read()
 
-        xmlsrc = xmlsrc.replace(r"&", "&amp;")
+        xmlsrc = re.sub(r"&(\s)", r"&amp;\1", xmlsrc)
 
         ns = "{http://check.sourceforge.net/ns}"
         root = ET.fromstring(xmlsrc)
