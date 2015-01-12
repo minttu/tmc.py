@@ -174,10 +174,13 @@ def current(exercise):
      dest="dl_all", help="Download all exercises.")
 @arg("-f", "--force", default=False, action="store_true",
      help="Should the download be forced.")
-@arg("-u", "--upgrade", default=False, action="store_true",
+@arg("-j", "--upgradejava", default=False, action="store_true",
      help="Should the Java target be upgraded from 1.6 to 1.7")
+@arg("-u", "--update", default=False, action="store_true",
+     help="Update the tests of the exercise.")
 @selected_course
-def download(course, tid=None, dl_all=False, force=False, upgrade=False):
+def download(course, tid=None, dl_all=False, force=False, upgradejava=False,
+             update=False):
     """
     Download the exercises from the server.
     """
@@ -185,7 +188,8 @@ def download(course, tid=None, dl_all=False, force=False, upgrade=False):
     def dl(id):
         download_exercise(Exercise.get(Exercise.tid == id),
                           force=force,
-                          update_java=upgrade)
+                          update_java=upgradejava,
+                          update=update)
 
     if dl_all:
         for exercise in list(course.exercises):
@@ -414,31 +418,33 @@ def update(course=False):
     else:
         selected = Course.get_selected()
 
-        with Spinner.context(msg="Updated exercise metadata.",
-                             waitmsg="Updating exercise metadata."):
-            for exercise in api.get_exercises(selected.tid):
+        # with Spinner.context(msg="Updated exercise metadata.",
+        #                     waitmsg="Updating exercise metadata."):
+        print("Updating exercise data.")
+        for exercise in api.get_exercises(selected.tid):
+            old = None
+            try:
+                old = Exercise.byid(exercise["id"])
+            except peewee.DoesNotExist:
                 old = None
-                try:
-                    old = Exercise.byid(exercise["id"])
-                except peewee.DoesNotExist:
-                    old = None
-                if old is not None:
-                    old.name = exercise["name"]
-                    old.course = selected.id
-                    old.is_attempted = exercise["attempted"]
-                    old.is_completed = exercise["completed"]
-                    old.deadline = exercise.get("deadline")
-                    old.is_downloaded = os.path.isdir(old.path())
-                    old.save()
-                else:
-                    ex = Exercise.create(tid=exercise["id"],
-                                         name=exercise["name"],
-                                         course=selected.id,
-                                         is_attempted=exercise["attempted"],
-                                         is_completed=exercise["completed"],
-                                         deadline=exercise.get("deadline"))
-                    ex.is_downloaded = os.path.isdir(ex.path())
-                    ex.save()
+            if old is not None:
+                old.name = exercise["name"]
+                old.course = selected.id
+                old.is_attempted = exercise["attempted"]
+                old.is_completed = exercise["completed"]
+                old.deadline = exercise.get("deadline")
+                old.is_downloaded = os.path.isdir(old.path())
+                old.save()
+                download_exercise(old, update=True)
+            else:
+                ex = Exercise.create(tid=exercise["id"],
+                                     name=exercise["name"],
+                                     course=selected.id,
+                                     is_attempted=exercise["attempted"],
+                                     is_completed=exercise["completed"],
+                                     deadline=exercise.get("deadline"))
+                ex.is_downloaded = os.path.isdir(ex.path())
+                ex.save()
 
 
 @selected_course

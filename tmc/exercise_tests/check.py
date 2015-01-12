@@ -18,10 +18,16 @@ class CheckTest(BaseTest):
 
         testpath = path.join(exercise.path(), "test", "tmc_test_results.xml")
         if not path.isfile(testpath):
-            return TestResult(False, err)
+            return [TestResult(False, err)]
+
+        xmlsrc = ""
+        with open(testpath) as fp:
+            xmlsrc = fp.read()
+
+        xmlsrc.replace(r"&", "&amp;")
 
         ns = "{http://check.sourceforge.net/ns}"
-        root = ET.parse(testpath).getroot()
+        root = ET.fromstring(xmlsrc)
         for test in root.iter(ns + "test"):
             success = True
             name = test.find(ns + "description").text
@@ -29,6 +35,8 @@ class CheckTest(BaseTest):
             if test.get("result") == "failure":
                 success = False
                 message = test.find(ns + "message").text
-            ret.append(TestResult(success=success, name=name, message=message))
+            ret.append(TestResult(success=success,
+                                  name=name,
+                                  message=message.replace(r"&amp;", "&")))
 
         return ret

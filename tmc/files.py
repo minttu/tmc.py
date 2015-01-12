@@ -9,12 +9,13 @@ from tmc.ui.spinner import Spinner
 from tmc.coloring import successmsg, warningmsg, errormsg, infomsg
 
 
-def download_exercise(exercise, force=False, update_java=False):
+def download_exercise(exercise, force=False, update_java=False, update=False):
     course = exercise.get_course()
     outpath = os.path.join(course.path)
     realoutpath = exercise.path()
+    needs_update = update and exercise.is_downloaded
     print("{} -> {}".format(exercise.menuname(), realoutpath))
-    if not force and os.path.isdir(realoutpath):
+    if not force and os.path.isdir(realoutpath) and not update:
         print("Already downloaded, skipping.")
         exercise.is_downloaded = True
         exercise.save()
@@ -23,13 +24,18 @@ def download_exercise(exercise, force=False, update_java=False):
                 modify_java_target(exercise)
             except TMCError:
                 pass
-        return
+            return
 
-    with Spinner.context(msg="Downloaded.", waitmsg="Downloading."):
+    with Spinner.context(msg="Updated." if needs_update else "Downloaded.", waitmsg="Downloading."):
         tmpfile = BytesIO()
         api.get_zip_stream(exercise.tid, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
-        zipfp.extractall(outpath)
+        if needs_update:
+            for i in zipfp.infolist():
+                if "/src/" not in i.filename:
+                    zipfp.extract(i, outpath)
+        else:
+            zipfp.extractall(outpath)
         exercise.is_downloaded = True
         exercise.save()
 
