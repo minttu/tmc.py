@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.9
+-----
+
+* C compile failures work
+* XML escaping workaround is more gentle
+
 0.3.8
 -----
 
