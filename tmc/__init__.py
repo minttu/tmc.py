@@ -1,7 +1,7 @@
 import sys
 import os
 
-#begin by checking for curses
+# begin by checking for curses
 try:
     import curses
 except ImportError:

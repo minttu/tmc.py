@@ -401,7 +401,7 @@ def list_all(course, single=None):
 @arg("-c", "--course", action="store_true", help="Update courses instead.")
 def update(course=False):
     """
-    Update the metadata of courses and or exercises from server.
+    Update the data of courses and or exercises from server.
     """
     if course:
         with Spinner.context(msg="Updated course metadata.",
@@ -531,6 +531,7 @@ def should_update():
 commands = [select, update, download, test, submit, skip, current, previous,
             reset, configure, version, list_all, run, check_for_updates,
             paste]
+
 
 def main():
     parser = argh.ArghParser()
