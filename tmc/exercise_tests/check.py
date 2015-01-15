@@ -37,7 +37,7 @@ class CheckTest(BaseTest):
             if test.get("result") == "failure":
                 success = False
                 message = test.find(ns + "message").text
-                message = message.replace(r"&amp;", "&")))
+                message = message.replace(r"&amp;", "&")
             ret.append(TestResult(success=success, name=name, message=message))
 
         return ret
