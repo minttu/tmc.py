@@ -17,14 +17,8 @@ class TestResult(object):
     time = None
     trace = ""
 
-    def __init__(self, name=None, message=None, success=True,
-                 time=None, trace=None):
-        if name is None:
-            name = ""
-        if message is None:
-            message = ""
-        if trace is None:
-            trace = ""
+    def __init__(self, name="", message="", success=True,
+                 time=None, trace=""):
         self.name = name
         self.message = message
         self.success = success
