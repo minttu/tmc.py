@@ -1,13 +1,11 @@
 from functools import partial
 from sys import stdout, stderr
-from os import getenv
 
 from tmc import conf
 
-use_colors = conf.use_ansi_colors
 
 # User might want to disable all coloring
-no_coloring = getenv("TMCPY_NOCOLORING", False)
+no_coloring = not conf.use_ansi_colors
 
 
 class AnsiColorCodes(object):
@@ -43,7 +41,7 @@ Colors = Escaped(AnsiColorCodes)
 
 def formatter(color, s):
     """ Formats a string with color """
-    if not use_colors:
+    if no_coloring:
         return s
     return "{begin}{s}{reset}".format(begin=color, s=s, reset=Colors.RESET)
 
