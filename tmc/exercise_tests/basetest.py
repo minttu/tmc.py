@@ -44,7 +44,7 @@ class TestResult(object):
             elif conf.tests_show_partial_trace and self.trace:
                 msg += "\n" + "\n".join(self.trace.split("\n")[:5])
         if self.success and conf.tests_show_successful:
-            successmsg(msg)
+            successmsg(msg, "OK!")
         elif not self.success:
             errormsg(msg)
 
@@ -111,6 +111,6 @@ def run_test(exercise):
             result = False
         i.print()
     if result:
-        successmsg("OK!")
+        successmsg("All OK!")
         return None
     return result
