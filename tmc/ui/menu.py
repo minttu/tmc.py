@@ -38,8 +38,11 @@ class Menu:
         self.panel = panel.new_panel(self.window)
         self.panel.hide()
         panel.update_panels()
-        curses.curs_set(0)
-        curses.use_default_colors()
+        try:
+            curses.curs_set(0)
+            curses.use_default_colors()
+        except curses.error:
+            pass
         self.start()
 
     def navigate(self, n):
