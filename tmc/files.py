@@ -117,7 +117,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
         warningmsg("------------------")
         for test in data["test_cases"]:
             if test["successful"]:
-                if conf.show_successful_tests:
+                if conf.tests_show_successful:
                     successmsg("{name}: {message}".format(**test))
             else:
                 errormsg("{name}:\n  {message}".format(**test))
