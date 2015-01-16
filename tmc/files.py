@@ -83,14 +83,15 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     with Spinner.context(msg="Submission has been sent.",
                          waitmsg="Sending submission."):
         tmpfile = BytesIO()
-        zipfp = zipfile.ZipFile(tmpfile, "w")
-        for root, _, files in os.walk(outpath):
-            for file in files:
-                zipfp.write(os.path.join(root, file),
-                            os.path.relpath(os.path.join(root, file),
-                                            os.path.join(outpath, '..')),
-                            zipfile.ZIP_DEFLATED)
-        zipfp.close()
+        with zipfile.ZipFile(tmpfile, "w") as zipfp:
+            for root, _, files in os.walk(outpath):
+                for file in files:
+                    filename = os.path.join(root, file)
+                    archname = os.path.relpath(os.path.join(root, file),
+                                               os.path.join(outpath, '..'))
+                    compress_type = zipfile.ZIP_DEFLATED
+                    zipfp.write(filename, archname, compress_type)
+
         resp = api.send_zip(exercise.tid, tmpfile.getvalue(), params)
 
     if "submission_url" not in resp:

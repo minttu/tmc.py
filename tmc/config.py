@@ -20,11 +20,9 @@ class Config(object):
     defaults = None
 
     def __init__(self):
-        super().__setattr__('filename',
-                            environ.get("TMC_CONFIGFILE",
-                                        path.join(path.expanduser("~"),
-                                                  ".config",
-                                                  "tmc.ini")))
+        default_path = path.join(path.expanduser("~"), ".config", "tmc.ini")
+        config_filepath = environ.get("TMC_CONFIGFILE", default_path)
+        super().__setattr__('filename', config_filepath)
         super().__setattr__('config', ConfigParser())
         self._update_defaults()
 

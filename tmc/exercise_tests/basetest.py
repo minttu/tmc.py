@@ -17,14 +17,8 @@ class TestResult(object):
     time = None
     trace = ""
 
-    def __init__(self, name=None, message=None, success=True,
-                 time=None, trace=None):
-        if name is None:
-            name = ""
-        if message is None:
-            message = ""
-        if trace is None:
-            trace = ""
+    def __init__(self, name="", message="", success=True,
+                 time=None, trace=""):
         self.name = name
         self.message = message
         self.success = success
@@ -94,23 +88,31 @@ class BaseTest(object):
         raise NotImplementedError()
 
 
+def select_test_class(exercise):
+    classes = BaseTest.__subclasses__()
+    class_instances = (c() for c in classes)
+
+    # next returns the first element in sequence, or None
+    pred = lambda c: c.applies_to(exercise)
+    cls = next(filter(pred, class_instances), None)
+
+    if cls is None:
+        raise NoSuitableTestFound()
+    return cls
+
+
 def run_test(exercise):
     if not os.path.isdir(exercise.path()):
         raise NotDownloaded()
-    ret = None
-    for cls in BaseTest.__subclasses__():
-        cls = cls()
-        if cls.applies_to(exercise):
-            ret = cls.test(exercise)
-            break
-    if ret is None:
-        raise NoSuitableTestFound()
-    result = True
-    for i in ret:
-        if not i.success:
-            result = False
-        i.print()
-    if result:
+
+    test_class = select_test_class(exercise)
+    results = test_class.test(exercise)
+    all_ok = all(r.success for r in results)
+
+    for r in results:
+        r.print()
+
+    if all_ok:
         successmsg("All OK!")
         return None
-    return result
+    return all_ok
