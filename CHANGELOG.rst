@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.13
+------
+
+* Refactoring
+* C compiler warnings are shown
+
 0.3.10 - 0.3.12
 ---------------
 

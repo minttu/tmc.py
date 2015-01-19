@@ -2,7 +2,7 @@ import os
 from subprocess import PIPE, Popen
 
 from tmc import conf
-from tmc.coloring import errormsg, successmsg
+from tmc.coloring import errormsg, successmsg, warningmsg
 from tmc.errors import MissingProgram, NoSuitableTestFound, NotDownloaded
 from tmc.ui.spinner import Spinner
 
@@ -17,16 +17,19 @@ class TestResult(object):
     time = None
     trace = ""
 
-    def __init__(self, name="", message="", success=True,
+    def __init__(self, name="", message="", success=True, warning=False,
                  time=None, trace=""):
         self.name = name
         self.message = message
         self.success = success
+        self.warning = warning
         self.time = time
         self.trace = trace
 
     def print(self):
         msg = self.name
+        if self.warning:
+            return warningmsg(self.message)
         if conf.tests_show_time and self.time is not None:
             msg += " ({0}s)".format(self.time)
         if self.success and conf.tests_show_trace:

@@ -22,6 +22,9 @@ class CheckTest(BaseTest):
         if not path.isfile(testpath):
             return [TestResult(success=False, message=err)]
 
+        if len(err) > 0:
+            ret.append(TestResult(message=err, warning=True))
+
         xmlsrc = ""
         with open(testpath) as fp:
             xmlsrc = fp.read()
