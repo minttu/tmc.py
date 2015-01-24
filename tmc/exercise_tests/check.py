@@ -32,14 +32,18 @@ class CheckTest(BaseTest):
         xmlsrc = re.sub(r"&(\s)", r"&amp;\1", xmlsrc)
 
         ns = "{http://check.sourceforge.net/ns}"
+        matchtest = ns + "test"
+        matchdesc = ns + "description"
+        matchmsg = ns + "message"
+
         root = ET.fromstring(xmlsrc)
-        for test in root.iter(ns + "test"):
+        for test in root.iter(matchtest):
             success = True
-            name = test.find(ns + "description").text
+            name = test.find(matchdesc).text
             message = None
             if test.get("result") == "failure":
                 success = False
-                message = test.find(ns + "message").text
+                message = test.find(matchmsg).text
                 message = message.replace(r"&amp;", "&")
             ret.append(TestResult(success=success, name=name, message=message))
 
