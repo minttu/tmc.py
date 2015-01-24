@@ -38,13 +38,14 @@ class CheckTest(BaseTest):
 
         root = ET.fromstring(xmlsrc)
         for test in root.iter(matchtest):
-            success = True
             name = test.find(matchdesc).text
-            message = None
-            if test.get("result") == "failure":
+            if test.get("result") in ["failure", "error"]:
                 success = False
                 message = test.find(matchmsg).text
                 message = message.replace(r"&amp;", "&")
+            else:
+                success = True
+                message = ""
             ret.append(TestResult(success=success, name=name, message=message))
 
         return ret
