@@ -26,8 +26,12 @@ class Spinner(threading.Thread):
 
     def stop_spinning(self):
         self.spinning = False
-        sys.stdout.write("\b" * (len(self.template) - 2)
-                         + self.msg + " " * (len(self.template) - 2) + "\n")
+        if self.msg:
+            sys.stdout.write("\b" * (len(self.template) - 2)
+                             + self.msg + " " * (len(self.template) - 2) + "\n")
+        else:
+            sys.stdout.write("\b" * (len(self.template) - 2) + " " * (len(self.template) - 2))
+            sys.stdout.write("\b" * (len(self.template) - 2))
         sys.stdout.flush()
         self.index = 0
 
