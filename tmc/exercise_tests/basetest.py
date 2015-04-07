@@ -51,7 +51,7 @@ class BaseTest(object):
     def __init__(self, name):
         self.name = name
 
-    def run(self, params, exercise):
+    def run(self, params, exercise, silent=False, env=os.environ):
         """
         Run a program with Popen and handle common errors
         :param params: Parameter list to Popen
@@ -60,9 +60,11 @@ class BaseTest(object):
         """
         out, err, code = "", "", -1
 
-        @Spinner.decorate("Results:", waitmsg="Testing with " + self.name)
+        @Spinner.decorate("Results:" if not silent else "",
+                          waitmsg="Testing with " + self.name)
         def inner():
-            ret = Popen(params, stdout=PIPE, stderr=PIPE, cwd=exercise.path())
+            ret = Popen(params, stdout=PIPE, stderr=PIPE, cwd=exercise.path(),
+                        env=env)
             out, err = ret.communicate()
             return out.decode("utf-8"), err.decode("utf-8"), ret.returncode
         try:

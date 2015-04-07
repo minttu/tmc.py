@@ -1,7 +1,7 @@
 import re
 
 import xml.etree.ElementTree as ET
-from os import path
+from os import path, environ
 
 from tmc.exercise_tests.basetest import BaseTest, TestResult
 
@@ -47,5 +47,11 @@ class CheckTest(BaseTest):
                 success = True
                 message = ""
             ret.append(TestResult(success=success, name=name, message=message))
+        self.name = "Valgrind"
+        err, _, trace = self.run(["valgrind", "--leak-check=full",
+                               "--error-exitcode=1", "test/test"], exercise,
+                               silent=True, env=dict(environ, CK_FORK="no"))
+        success = err == 0
+        ret.append(TestResult(success=success, name="valgrind", message=trace))
 
         return ret
