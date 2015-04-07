@@ -48,12 +48,10 @@ class CheckTest(BaseTest):
                 message = ""
             ret.append(TestResult(success=success, name=name, message=message))
         self.name = "Valgrind"
-        verr, _, trace = self.run(["valgrind", "-q", "--leak-check=full",
+        err, _, trace = self.run(["valgrind", "--leak-check=full",
                                "--error-exitcode=1", "test/test"], exercise,
                                silent=True, env=dict(environ, CK_FORK="no"))
-        vsuccess = verr==0
-        vmesg = "" if vsuccess else "You are leaking memory!"
-        ret.append(TestResult(success=vsuccess, name="valgrind", message=vmesg,
-                              trace=trace))
+        success = err == 0
+        ret.append(TestResult(success=success, name="valgrind", message=trace))
 
         return ret
