@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.15
+------
+
+* Valgrind support
+
 0.3.14
 ------
 
