@@ -1,4 +1,5 @@
 import re
+import glob
 
 import xml.etree.ElementTree as ET
 from os import path, environ
@@ -12,7 +13,7 @@ class CheckTest(BaseTest):
         super().__init__("Check")
 
     def applies_to(self, exercise):
-        return path.isfile(path.join(exercise.path(), "Makefile"))
+        return 0 < len(glob.glob(path.join(exercise.path(), "src", "*.c")))
 
     def test(self, exercise):
         _, _, err = self.run(["make", "clean", "all", "run-test"], exercise)
