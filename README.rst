@@ -26,6 +26,11 @@ tutorial / usage
 
 `See here`_
 
+version numbers
+---------------
+
+`SemVer`_ will be adopted starting with the 1.0.0 release.
+
 license
 -------
 
@@ -36,3 +41,4 @@ MIT, see ``LICENSE``
 .. _tmc-netbeans: https://github.com/testmycode/tmc-netbeans
 .. _See here: https://JuhaniImberg.github.io/tmc.py/tutorial.html
 .. _curses: http://www.lfd.uci.edu/~gohlke/pythonlibs/#curses
+.. _SemVer: http://semver.org/
