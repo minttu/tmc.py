@@ -86,10 +86,13 @@ class Exercise(BaseModel):
     def get_selected():
         sel = None
         path = os.getcwd()
-        for course in Course.select().execute():
-            if path.startswith(course.path):
-                for ex in course.exercises:
-                    if path.startswith(ex.path()):
+        path = path.split("/")
+        for course in Course.select().where(Course.path != "").execute():
+            cpath = course.path.split("/")
+            if path[:len(cpath)] == cpath:
+                for ex in course.exercises.where(Exercise.is_downloaded == True):
+                    epath = ex.path().split("/")
+                    if path[:len(epath)] == epath:
                         sel = ex
                         ex.set_select()
                         print("Selected", "\"{}\"".format(ex.menuname()),
