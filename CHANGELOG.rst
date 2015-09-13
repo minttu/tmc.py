@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.0
+0.3.17
 -----
 
 * Fixed path to exercise resolving (#31)
