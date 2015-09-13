@@ -21,6 +21,9 @@ otherwise
 
 If you are running a Windows OS, please install `curses`_ for Python.
 
+If you want to try out the git version you can do so by cloning this repository,
+activating your virtualenv and ``./setup.py install``.
+
 tutorial / usage
 ----------------
 
