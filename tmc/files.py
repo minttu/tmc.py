@@ -143,7 +143,7 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
     else:
         raise TMCError("Submission status unknown: {0}".format(status))
 
-    if "paste_url" in data:
+    if data.get("paste_url"):
         infomsg("Pastebin URL: " + data["paste_url"])
 
     if data.get("requests_review", False):
