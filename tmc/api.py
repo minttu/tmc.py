@@ -66,16 +66,12 @@ class API:
     def get_courses(self):
         return self.make_request("courses.json")["courses"]
 
-    def get_exercises(self, course_id):
-        resp = self.make_request("courses/{0}.json".format(course_id))
+    def get_exercises(self, course):
+        resp = self.make_request(course.details_url)
         return resp["course"]["exercises"]
 
-    def get_exercise(self, exercise_id):
-        return self.make_request("exercises/{0}.json".format(exercise_id))
-
-    def get_zip_stream(self, exercise_id, tmpfile_handle):
-        slug = "exercises/{0}.zip".format(exercise_id)
-        resp = self.get(slug, stream=True)
+    def get_zip_stream(self, exercise, tmpfile_handle):
+        resp = self.get(exercise.zip_url, stream=True)
 
         for block in resp.iter_content(1024):
             if not block:
@@ -84,13 +80,13 @@ class API:
 
         return resp
 
-    def send_zip(self, exercise_id, file, params):
+    def send_zip(self, exercise, file, params):
         """
         Send zipfile to TMC for given exercise
         """
-        slug = "exercises/{0}/submissions.json".format(exercise_id)
+
         resp = self.post(
-            slug,
+            exercise.return_url,
             params=params,
             files={
                 "submission[file]": ('submission.zip', file)
@@ -101,11 +97,21 @@ class API:
         )
         return self._to_json(resp)
 
-    def get_submission(self, submission_id):
-        resp = self.make_request("submissions/{0}.json".format(submission_id))
+    def get_submission(self, url):
+        resp = self.make_request(url)
         if resp["status"] == "processing":
             return None
         return resp
+
+    def _make_url(self, slug):
+        """
+        Ensures that the request url is valid.
+        Sometimes we have URLs that the server gives that are preformatted,
+        sometimes we need to form our own.
+        """
+        if slug.startswith("http"):
+            return slug
+        return "{0}{1}".format(self.server_url, slug)
 
     def _do_request(self, method, slug, **kwargs):
         """
@@ -116,7 +122,7 @@ class API:
         if not self.configured:
             self.configure()
 
-        url = "{0}{1}".format(self.server_url, slug)
+        url = self._make_url(slug)
 
         # 'defaults' are values associated with every request.
         # following will make values in kwargs override them.

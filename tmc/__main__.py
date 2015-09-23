@@ -414,15 +414,18 @@ def update(course=False):
                 except peewee.DoesNotExist:
                     old = None
                 if old:
+                    old.details_url = course["details_url"]
+                    old.save()
                     continue
-                Course.create(tid=course["id"], name=course["name"])
+                Course.create(tid=course["id"], name=course["name"],
+                              details_url=course["details_url"])
     else:
         selected = Course.get_selected()
 
         # with Spinner.context(msg="Updated exercise metadata.",
         #                     waitmsg="Updating exercise metadata."):
         print("Updating exercise data.")
-        for exercise in api.get_exercises(selected.tid):
+        for exercise in api.get_exercises(selected):
             old = None
             try:
                 old = Exercise.byid(exercise["id"])
@@ -435,6 +438,9 @@ def update(course=False):
                 old.is_completed = exercise["completed"]
                 old.deadline = exercise.get("deadline")
                 old.is_downloaded = os.path.isdir(old.path())
+                old.return_url = exercise["return_url"]
+                old.zip_url = exercise["zip_url"]
+                old.submissions_url = exercise["exercise_submissions_url"]
                 old.save()
                 download_exercise(old, update=True)
             else:
@@ -443,7 +449,12 @@ def update(course=False):
                                      course=selected.id,
                                      is_attempted=exercise["attempted"],
                                      is_completed=exercise["completed"],
-                                     deadline=exercise.get("deadline"))
+                                     deadline=exercise.get("deadline"),
+                                     return_url=exercise["return_url"],
+                                     zip_url=exercise["zip_url"],
+                                     submissions_url=exercise[("exercise_"
+                                                               "submissions_"
+                                                               "url")])
                 ex.is_downloaded = os.path.isdir(ex.path())
                 ex.save()
 

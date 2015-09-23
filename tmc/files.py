@@ -29,7 +29,7 @@ def download_exercise(exercise, force=False, update_java=False, update=False):
     with Spinner.context(msg="Updated." if needs_update else "Downloaded.",
                          waitmsg="Downloading."):
         tmpfile = BytesIO()
-        api.get_zip_stream(exercise.tid, tmpfile)
+        api.get_zip_stream(exercise, tmpfile)
         zipfp = zipfile.ZipFile(tmpfile)
         if needs_update:
             for i in zipfp.infolist():
@@ -92,18 +92,17 @@ def submit_exercise(exercise, request_review=False, pastebin=False):
                     compress_type = zipfile.ZIP_DEFLATED
                     zipfp.write(filename, archname, compress_type)
 
-        resp = api.send_zip(exercise.tid, tmpfile.getvalue(), params)
+        resp = api.send_zip(exercise, tmpfile.getvalue(), params)
 
     if "submission_url" not in resp:
         return
 
     url = resp["submission_url"]
-    submission_id = int(url.split(".json")[0].split("submissions/")[1])
 
     @Spinner.decorate(msg="Results:", waitmsg="Waiting for results.")
     def inner():
         while True:
-            data = api.get_submission(submission_id)
+            data = api.get_submission(url)
             if data:
                 return data
             time.sleep(1)

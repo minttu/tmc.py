@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.0.0
+-----
+
+* Uses server generated URLs for submitting and everything else except the
+  initial ``courses.json``
+* Database schema migration system
+
 0.3.17
 -----
 

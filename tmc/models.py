@@ -1,7 +1,10 @@
 import os
 
 from peewee import (BooleanField, CharField, DateField, ForeignKeyField,
-                    IntegerField, Model, SqliteDatabase, DoesNotExist)
+                    IntegerField, Model, SqliteDatabase, DoesNotExist,
+                    OperationalError)
+from playhouse.migrate import SqliteMigrator
+from playhouse.migrate import migrate as run_migrate
 
 from tmc.errors import NoCourseSelected, NoExerciseSelected
 
@@ -24,11 +27,16 @@ class BaseModel(Model):
         database = sqlite
 
 
+class SchemaVersion(BaseModel):
+    version = IntegerField()
+
+
 class Course(BaseModel):
     tid = IntegerField(unique=True)
     name = CharField()
     is_selected = BooleanField(default=False)
     path = CharField(default="")
+    details_url = CharField()
 
     def set_select(self):
         Course.update(
@@ -63,6 +71,10 @@ class Exercise(BaseModel):
     is_downloaded = BooleanField(default=False)
     is_attempted = BooleanField(default=False)
     deadline = DateField(null=True)
+
+    submissions_url = CharField(default='')
+    zip_url = CharField(default='')
+    return_url = CharField(default='')
 
     def get_course(self):
         return Course.get(Course.id == self.course)
@@ -175,13 +187,40 @@ class Config(BaseModel):
             return False
 
 
+def migrate_0_to_1(migrator):
+    run_migrate(
+        migrator.add_column('course', 'details_url', CharField(default="")),
+        migrator.add_column('exercise', 'zip_url', CharField(default="")),
+        migrator.add_column('exercise', 'return_url', CharField(default="")),
+        migrator.add_column('exercise', 'submissions_url', CharField(default=""))
+    )
+
+migrations = [migrate_0_to_1]
+
+def migrate():
+    migrator = SqliteMigrator(sqlite)
+    from_version = SchemaVersion.select().count()
+    migrations_to_run = migrations[from_version:]
+    for index, migration in enumerate(migrations_to_run):
+        print("Migrating database version {} to {} ..".format(index, index + 1),
+              end="")
+        with sqlite.transaction():
+            try: # TODO: handle migrations better, this is here so that new
+                 # installs don't break because they have the fields already..
+                migration(migrator)
+            except OperationalError as e:
+                pass
+        SchemaVersion.create(version=index + 1).save()
+        print("\b\bdone")
+
 def init_db():
     Course.create_table(fail_silently=True)
     Exercise.create_table(fail_silently=True)
     Config.create_table(fail_silently=True)
+    SchemaVersion.create_table(fail_silently=True)
 
 init_db()
-
+migrate()
 
 def reset_db():
     Course.drop_table()
