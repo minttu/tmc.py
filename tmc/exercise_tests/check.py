@@ -13,7 +13,9 @@ class CheckTest(BaseTest):
         super().__init__("Check")
 
     def applies_to(self, exercise):
-        return 0 < len(glob.glob(path.join(exercise.path(), "src", "*.c")))
+        src_path = path.join(exercise.path(), "src")
+        return all([0 < len(glob.glob(path.join(src_path, "*.c"))),
+                    0 == len(glob.glob(path.join(src_path, "*.cpp")))])
 
     def test(self, exercise):
         _, _, err = self.run(["make", "clean", "all", "run-test"], exercise)

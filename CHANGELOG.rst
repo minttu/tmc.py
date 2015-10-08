@@ -8,6 +8,11 @@ Changelog
   initial ``courses.json``
 * Database schema migration system
 
+0.3.18
+------
+
+* Fixed running GTest when there were `c` files in the `src` directory.
+
 0.3.17
 -----
 
