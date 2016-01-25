@@ -15,6 +15,7 @@
 # Windows users: install linux.
 #
 
+command -v git >/dev/null 2>&1 || { echo >&2 "Using tmc.py requires git. Aborting."; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo >&2 "Using tmc.py requires python3. Aborting."; exit 1; }
 command -v virtualenv >/dev/null 2>&1 || { echo >&2 "Using tmc.py requires virtualenv. Aborting."; exit 1; }
 
