@@ -7,7 +7,7 @@
 #
 # Needs python3.2+ and virtualenv to be installed
 #
-# Ubuntu and others: apt-get install python-virtualenv
+# Ubuntu and others: apt-get install python-virtualenv git
 #
 # Mac users: install virtualenv with this guide:
 # http://docs.python-guide.org/en/latest/starting/install/osx/
