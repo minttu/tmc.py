@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.1
+-----
+
+* Handle invalid UTF-8 more gracefully
+
 1.0.0
 -----
 

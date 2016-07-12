@@ -29,7 +29,7 @@ class CheckTest(BaseTest):
             ret.append(TestResult(message=err, warning=True))
 
         xmlsrc = ""
-        with open(testpath) as fp:
+        with open(testpath, errors="backslashreplace") as fp:
             xmlsrc = fp.read()
 
         xmlsrc = re.sub(r"&(\s)", r"&amp;\1", xmlsrc)

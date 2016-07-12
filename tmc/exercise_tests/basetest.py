@@ -66,7 +66,9 @@ class BaseTest(object):
             ret = Popen(params, stdout=PIPE, stderr=PIPE, cwd=exercise.path(),
                         env=env)
             out, err = ret.communicate()
-            return out.decode("utf-8"), err.decode("utf-8"), ret.returncode
+            return (out.decode("utf-8", "backslashreplace"),
+                    err.decode("utf-8", "backslashreplace"),
+                    ret.returncode)
         try:
             out, err, code = inner()
         except OSError as e:
