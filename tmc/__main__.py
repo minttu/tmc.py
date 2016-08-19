@@ -76,7 +76,7 @@ def false_exit(func):
 def check_for_updates():
     from xmlrpc.client import ServerProxy
     from distutils.version import StrictVersion
-    pypi = ServerProxy("http://pypi.python.org/pypi")
+    pypi = ServerProxy("https://pypi.python.org/pypi")
     version = StrictVersion(__version__)
     pypiversion = StrictVersion(pypi.package_releases("tmc")[0])
     if pypiversion > version:
