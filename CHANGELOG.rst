@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.2
+-----
+
+* Fix PyPI update check
+
 1.0.1
 -----
 
